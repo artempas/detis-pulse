@@ -67,6 +67,7 @@
   /* ------------------------------------------------------------------ */
   (function initTimer() {
     var btn = $('#timer-btn');
+    var reset = $('#timer-reset');
     var display = $('#timer-display');
     var status = $('#timer-status');
     if (!btn || !display) return;
@@ -92,17 +93,22 @@
       btn.dataset.state = 'done';
       btn.textContent = 'Начать заново';
       btn.disabled = false;
+      reset.hidden = true;
       status.textContent = 'Минута прошла. Введите получившееся число в поле «Пульс».';
       var pulseInput = $('#pulse');
       if (pulseInput) pulseInput.focus({ preventScroll: true });
     }
 
     function start() {
+      stop();
       left = CONFIG.timerSeconds;
       render();
       btn.dataset.state = 'running';
       btn.textContent = 'Идет отсчет…';
       btn.disabled = true;
+      /* Пока идёт отсчёт, основная кнопка заблокирована —
+         перезапуск вынесен в отдельную кнопку (можно сбиться со счёта) */
+      reset.hidden = false;
       status.textContent = 'Считайте пульсации, пока идет отсчет.';
       display.classList.add('is-running');
       tick = setInterval(function () {
@@ -115,6 +121,11 @@
     btn.addEventListener('click', function () {
       if (tick) return;
       start();
+    });
+
+    reset.addEventListener('click', function () {
+      start();
+      reset.focus({ preventScroll: true });
     });
 
     render();
@@ -324,6 +335,7 @@
     /* Персонализация блока пожертвования */
     $('#donate-pulse').textContent = state.pulse + ' ' + beatsWord(state.pulse);
     updateMinutesLabel();
+    updateSteppers();
 
     scrollToEl(result);
     countUp($('#result-number'), state.beats);
@@ -333,6 +345,16 @@
   function updateMinutesLabel() {
     var el = $('#donate-minutes');
     if (el) el.textContent = state.minutes + ' ' + minutesWord(state.minutes);
+  }
+
+  /* Шаг ограничен списком вариантов — на краях кнопки гаснут */
+  function updateSteppers() {
+    var options = CONFIG.minuteOptions;
+    var i = options.indexOf(state.minutes);
+    $$('[data-minutes-step]').forEach(function (btn) {
+      var dir = Number(btn.dataset.minutesStep);
+      btn.disabled = dir < 0 ? i <= 0 : i >= options.length - 1;
+    });
   }
 
   /* Пересчёт размера числа при смене ориентации/ширины окна */
@@ -438,21 +460,24 @@
       renderOptions();
     });
 
-    /* Открытие поп-апа: по «+», по «−» и по центральной надписи */
+    /* «−» и «+» только меняют количество минут, не открывая поп-ап */
     document.addEventListener('click', function (e) {
       var step = e.target.closest('[data-minutes-step]');
-      var open = e.target.closest('[data-open-donate]');
-      if (!step && !open) return;
+      if (!step) return;
 
-      if (step) {
-        var options = CONFIG.minuteOptions;
-        var i = options.indexOf(state.minutes);
-        if (i === -1) i = 0;
-        i = Math.max(0, Math.min(options.length - 1, i + Number(step.dataset.minutesStep)));
-        state.minutes = options[i];
-        updateMinutesLabel();
-      }
+      var options = CONFIG.minuteOptions;
+      var i = options.indexOf(state.minutes);
+      if (i === -1) i = 0;
+      i = Math.max(0, Math.min(options.length - 1, i + Number(step.dataset.minutesStep)));
+      state.minutes = options[i];
+      updateMinutesLabel();
+      renderOptions();
+      updateSteppers();
+    });
 
+    /* Поп-ап открывается по центральной надписи «Подарить N минут…» */
+    document.addEventListener('click', function (e) {
+      if (!e.target.closest('[data-open-donate]')) return;
       renderOptions();
       openModal('donate-modal');
     });
@@ -563,16 +588,18 @@
       ctx.fillStyle = '#BF2C23';
       ctx.fillRect(0, 0, W, H);
 
-      /* Декоративные сердца по краям */
+      /* Декоративные сердца по краям.
+         У heart8.png непрозрачный белый фон, поэтому режим multiply —
+         как mix-blend-mode на самой странице: белое исчезает, остаётся сердце */
       var hw = 84;
       var hh = hw * (heart.height / heart.width);
-      ctx.globalAlpha = 0.2;
+      ctx.globalCompositeOperation = 'multiply';
       [0.10, 0.30, 0.50, 0.70].forEach(function (t, i) {
         var hy = H * t;
         ctx.drawImage(heart, i % 2 ? 26 : 66, hy, hw, hh);
         ctx.drawImage(heart, W - hw - (i % 2 ? 26 : 66), hy + 16, hw, hh);
       });
-      ctx.globalAlpha = 1;
+      ctx.globalCompositeOperation = 'source-over';
 
       ctx.textAlign = 'center';
       ctx.textBaseline = 'top';

@@ -324,6 +324,16 @@ button {
   40% { transform: scale(1); }
 }
 
+.step__reset {
+  margin-top: clamp(8px, 0.9vw, 16px);
+  font-family: var(--os);
+  font-weight: 600;
+  font-size: clamp(13px, 1.04vw, 20px);
+  line-height: 1.3;
+  color: var(--red);
+}
+.step__reset:hover { color: #a32118; }
+
 .step__status {
   margin-top: clamp(8px, 0.9vw, 17px);
   font-family: var(--os);
@@ -574,6 +584,7 @@ button {
 
 .donate__btn { flex: 0 0 auto; width: clamp(38px, 3.33vw, 64px); }
 .donate__btn img { width: 100%; height: auto; }
+.donate__btn[disabled] { opacity: .35; cursor: default; }
 
 /* ---------- Спасибо ---------- */
 .thanks {
@@ -974,8 +985,10 @@ button {
 
   .header__help span { display: none; }
 
-  .form { flex-direction: column; align-items: center; }
-  .field { flex: 0 0 auto; width: 100%; }
+  /* Поля занимают всю ширину. Важно не переключать .form в column:
+     в колонке flex-basis у .field-wrap читается как высота */
+  .field-wrap { flex: 0 0 100%; }
+  .form__submit .btn { width: 100%; }
 
   .donate { flex-wrap: nowrap; }
   .donate__label { font-size: clamp(14px, 4vw, 20px); }

@@ -75,6 +75,7 @@
           <span>6</span><span>0</span>
         </p>
         <button class="btn" type="button" id="timer-btn" data-state="idle">Начать отсчет минуты</button>
+        <button class="link-btn step__reset" type="button" id="timer-reset" hidden>Начать заново</button>
         <p class="step__status" id="timer-status" role="status" aria-live="polite"></p>
       </li>
     </ol>
@@ -146,13 +147,13 @@
     <p class="result__pulse">Ваш пульс — <span id="donate-pulse">72 удара</span> в минуту</p>
 
     <div class="donate">
-      <button class="donate__btn" type="button" data-minutes-step="-1" aria-label="Уменьшить количество минут и открыть окно пожертвования">
+      <button class="donate__btn" type="button" data-minutes-step="-1" aria-label="Уменьшить количество минут">
         <img src="assets/group18.svg" alt="" aria-hidden="true">
       </button>
       <button class="donate__label" type="button" data-open-donate>
         Подарить <span id="donate-minutes">1 минуту</span> другому сердцу
       </button>
-      <button class="donate__btn" type="button" data-minutes-step="1" aria-label="Увеличить количество минут и открыть окно пожертвования">
+      <button class="donate__btn" type="button" data-minutes-step="1" aria-label="Увеличить количество минут">
         <img src="assets/group17.svg" alt="" aria-hidden="true">
       </button>
     </div>
