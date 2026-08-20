@@ -266,12 +266,14 @@
   /* Экран 3 — расчёт и результат                                        */
   /* ------------------------------------------------------------------ */
 
-  /* Формула: полных минут жизни × пульс в покое.
-     Минуты считаются от даты рождения (00:00) до текущего момента,
-     результат округляется вниз до целой минуты и до целого удара. */
-  function calcBeats(birth, pulse) {
-    var minutesLived = Math.floor((Date.now() - birth.getTime()) / 60000);
-    return Math.max(0, Math.floor(minutesLived * pulse));
+  /* Формула: минут жизни × пульс в покое.
+     Минуты считаются от даты рождения (00:00) до момента `at`,
+     результат округляется вниз до целого удара.
+     Минуты специально не округляются до целых: иначе число росло бы
+     скачком раз в минуту, а не в темпе пульса. */
+  function calcBeats(birth, pulse, at) {
+    var ms = (at || Date.now()) - birth.getTime();
+    return Math.max(0, Math.floor(ms / 60000 * pulse));
   }
 
   /* Число всегда в одну строку: подбираем размер под ширину контейнера */
@@ -317,6 +319,43 @@
     requestAnimationFrame(frame);
   }
 
+  /* Обновление числа без перезапуска подгонки кегля:
+     пересчитываем размер, только если число прибавило разряд */
+  function setNumber(el, value) {
+    if (!el) return;
+    var box = el.querySelector('.counter__value');
+    if (!box) return;
+
+    var text = formatNumber(value);
+    if (box.textContent === text) return;
+    var widthChanged = text.length !== box.textContent.length;
+    box.textContent = text;
+    if (widthChanged) fitNumber(el);
+  }
+
+  /* Живой счётчик: число продолжает расти в темпе введённого пульса.
+     Значение каждый раз пересчитывается от системных часов, поэтому
+     счётчик не «уплывает» при троттлинге вкладки и после сна устройства. */
+  var liveTimer = null;
+
+  function startLiveCounter() {
+    stopLiveCounter();
+    if (!state.birth || !state.pulse) return;
+
+    /* Один удар = 60000 / пульс мс (при пульсе 72 — примерно 833 мс) */
+    var period = Math.max(50, 60000 / state.pulse);
+    liveTimer = setInterval(function () {
+      state.beats = calcBeats(state.birth, state.pulse);
+      setNumber($('#result-number'), state.beats);
+      setNumber($('#personal-number'), state.beats);
+    }, period);
+  }
+
+  function stopLiveCounter() {
+    clearInterval(liveTimer);
+    liveTimer = null;
+  }
+
   function unlock(el) {
     if (!el) return;
     el.hidden = false;
@@ -338,7 +377,8 @@
     updateSteppers();
 
     scrollToEl(result);
-    countUp($('#result-number'), state.beats);
+    /* Сначала анимация подсчёта до текущего значения, затем живой счётчик */
+    countUp($('#result-number'), state.beats, startLiveCounter);
     countUp($('#personal-number'), state.beats);
   }
 
