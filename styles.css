@@ -669,16 +669,19 @@ button {
 .facts__track::-webkit-scrollbar { display: none; }
 
 .card {
+  /* Все размеры внутри карточки — доли её ширины (макет 615.989 × 440.403).
+     Именно от --card-w, а не в % и не в cqw: проценты паддинга считаются
+     от контейнера-трека, а cqw — от content-box, которую этот паддинг и задаёт. */
+  --card-w: min(615.99px, 88vw);
   position: relative;
-  flex: 0 0 min(615.99px, 88vw);
-  box-shadow: 0 6px 28px rgba(191, 44, 35, .10);
+  flex: 0 0 var(--card-w);
   aspect-ratio: 615.989 / 440.403;
-  padding: 14.93% 7.31% 0;
+  padding: calc(var(--card-w) * .1493) calc(var(--card-w) * .0732) 0;
   overflow: hidden;
   background: #fcfcfc;
   border-radius: 23.03px;
+  box-shadow: 0 6px 28px rgba(191, 44, 35, .10);
   scroll-snap-align: start;
-  container-type: inline-size;
 }
 
 /* Декор карточек: доли от размеров карточки, поэтому масштабируется вместе с ней */
@@ -704,20 +707,27 @@ button {
 
 .card__title {
   position: relative;
+  margin: 0;
   font-family: var(--inter);
   font-weight: 700;
-  font-size: 5.3cqw;
+  font-size: calc(var(--card-w) * .053);
   line-height: 1;
   color: #171717;
 }
 
+/* доли из макета: 385 / 362 / 309 / 341 / 366 px при ширине карточки 616 */
+#fact-2 { --text-w: .588; }
+#fact-3 { --text-w: .502; }
+#fact-4 { --text-w: .554; }
+#fact-5 { --text-w: .594; }
+
 .card__text {
   position: relative;
-  max-width: 63cqw;
-  margin-top: 2.75cqw;
+  max-width: calc(var(--card-w) * var(--text-w, .625));
+  margin-top: calc(var(--card-w) * .0283);
   font-family: var(--os);
-  font-size: 2.96cqw;
-  line-height: 1.63;
+  font-size: calc(var(--card-w) * .0296);
+  line-height: 1.632;
   color: #202020;
 }
 
@@ -970,8 +980,6 @@ button {
     margin: 20px auto 0;
     transform: none;
   }
-
-  .card { padding: 60px 32px 0; }
 }
 
 @media (max-width: 640px) {
@@ -1000,12 +1008,12 @@ button {
     scroll-padding-inline: 16px;
   }
   .card {
-    flex: 0 0 82vw;
+    --card-w: 82vw;
     aspect-ratio: auto;
     min-height: 380px;
     padding: 44px 24px 32px;
   }
-  /* На узком экране контейнерные единицы дают слишком мелкий кегль */
+  /* На узком экране пропорции макета дали бы нечитаемый кегль */
   .card__title { font-size: 22px; }
   .card__text {
     max-width: none;
