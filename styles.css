@@ -364,7 +364,11 @@ button {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: clamp(12px, 1.3vw, 25px) clamp(12px, 1.5vw, 30px) clamp(10px, 1.09vw, 21px);
+  padding-block: clamp(12px, 1.3vw, 25px) clamp(10px, 1.09vw, 21px);
+  /* Отступ по горизонтали одинаковый у всех полей и с обеих сторон:
+     справа в нём помещается иконка календаря, слева он держит подчёркивания
+     полей на одной вертикали */
+  padding-inline: calc(clamp(12px, 1.5vw, 30px) + clamp(26px, 2vw, 34px) + 12px);
   border: 2px solid #bfbfbf;
   border-radius: 16px;
   transition: border-color .2s;
@@ -373,7 +377,7 @@ button {
 .field.is-invalid { border-color: #d13c33; background: #fff6f5; }
 
 .field__input {
-  width: min(100%, 382px);
+  width: 100%;
   padding: 0 0 clamp(3px, 0.26vw, 5px);
   font-family: var(--os);
   font-weight: 600;
@@ -389,7 +393,6 @@ button {
   -webkit-appearance: none;
   appearance: none;
 }
-.field--pulse .field__input { width: min(100%, 241px); }
 .field__input::placeholder { color: #4a4a4a; opacity: .35; }
 
 /* Иконка календаря с нативным date-инпутом поверх неё */
@@ -421,9 +424,6 @@ button {
   opacity: 0;
   cursor: pointer;
 }
-
-/* Поле с календарём: справа резервируем место под иконку */
-.field--date { padding-right: calc(clamp(12px, 1.5vw, 30px) + clamp(26px, 2vw, 34px) + 12px); }
 
 .field__hint,
 .field__error {
