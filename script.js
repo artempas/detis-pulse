@@ -338,16 +338,34 @@
      счётчик не «уплывает» при троттлинге вкладки и после сна устройства. */
   var liveTimer = null;
 
+  /* Короткий «толчок» числа в такт удару.
+     Длительность фиксированная, а не доля периода: на высоком пульсе
+     растянутый толчок сливался бы в непрерывное дрожание. */
+  function beat(el, duration) {
+    if (reduceMotion || !el || !el.animate) return;
+    el.animate([
+      { transform: 'scale(1)' },
+      { transform: 'scale(1.02)', offset: 0.35 },
+      { transform: 'scale(1)' }
+    ], { duration: duration, easing: 'ease-out' });
+  }
+
   function startLiveCounter() {
     stopLiveCounter();
     if (!state.birth || !state.pulse) return;
 
     /* Один удар = 60000 / пульс мс (при пульсе 72 — примерно 833 мс) */
     var period = Math.max(50, 60000 / state.pulse);
+    var thump = Math.min(160, period * 0.5);
+
     liveTimer = setInterval(function () {
       state.beats = calcBeats(state.birth, state.pulse);
-      setNumber($('#result-number'), state.beats);
-      setNumber($('#personal-number'), state.beats);
+      var result = $('#result-number');
+      var personal = $('#personal-number');
+      setNumber(result, state.beats);
+      setNumber(personal, state.beats);
+      beat(result, thump);
+      beat(personal, thump);
     }, period);
   }
 
