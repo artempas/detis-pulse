@@ -27,17 +27,19 @@
 
 <main>
 
-  <section class="hero container">
+  <!-- ===== Экран 1 — об акции ===== -->
+  <section class="hero container" id="about">
     <h1 class="hero__title"><img src="assets/group23.svg" alt="#пульсуй"></h1>
     <p class="hero__lead">Ко <span class="accent">Всемирному Дню сердца</span><img class="hero__heart" src="assets/vector66.svg" alt="" aria-hidden="true"><br class="br-lg">
       фонд «Детские сердца» запускает традиционный флешмоб
       <a class="accent" href="https://vk.ru/feed?q=%23%D0%9F%D1%83%D0%BB%D1%8C%D1%81%D1%83%D0%B9&amp;section=search" target="_blank" rel="noopener">#пульсуй</a><br class="br-lg">
       в поддержку детей с пороками сердца.</p>
     <p class="hero__sub">Сердце совершает миллиарды ударов за жизнь.<br class="br-lg">
-      Узнай свое число за минуту</p>
+      Узнайте свое число за минуту</p>
   </section>
 
-  <section class="steps container" aria-label="Как измерить пульс">
+  <!-- ===== Экран 2 — инструкция, отсчёт минуты и форма ===== -->
+  <section class="steps container" id="measure" aria-label="Как измерить пульс">
     <ol class="steps__list">
       <li class="step">
         <div class="step__head"><span class="step__num">1</span></div>
@@ -69,37 +71,70 @@
       </li>
       <li class="step step--timer">
         <div class="step__head"><span class="step__num">4</span></div>
-        <p class="step__count"><span>6</span><span>0</span></p>
-        <button class="btn" type="button">Начать отсчет минуты</button>
+        <p class="step__count" id="timer-display" role="timer" aria-live="off">
+          <span>6</span><span>0</span>
+        </p>
+        <button class="btn" type="button" id="timer-btn" data-state="idle">Начать отсчет минуты</button>
+        <p class="step__status" id="timer-status" role="status" aria-live="polite"></p>
       </li>
     </ol>
 
-    <form class="form" action="#" method="post">
-      <label class="field">
-        <span class="visually-hidden">Дата рождения</span>
-        <input type="text" name="birthday" placeholder="Введите дату своего рождения" inputmode="numeric">
-      </label>
-      <label class="field field--pulse">
-        <span class="visually-hidden">Ваш пульс</span>
-        <input type="text" name="pulse" placeholder="Введите свой пульс" inputmode="numeric">
-      </label>
+    <!-- Форма: дата рождения + пульс в покое -->
+    <form class="form" id="pulse-form" novalidate>
+      <div class="field-wrap">
+        <div class="field field--date">
+          <label class="field__label visually-hidden" for="birthday">Дата рождения</label>
+          <input class="field__input" type="text" id="birthday" name="birthday"
+                 placeholder="Введите дату рождения"
+                 inputmode="numeric" autocomplete="bday" maxlength="10"
+                 aria-describedby="birthday-hint birthday-error" required>
+          <span class="field__picker">
+            <img src="assets/group.svg" alt="" aria-hidden="true">
+            <!-- Нативный календарь: прозрачный input поверх иконки —
+                 работает во всех мобильных браузерах без showPicker() -->
+            <input class="field__native" type="date" id="birthday-native"
+                   tabindex="-1" aria-label="Выбрать дату рождения в календаре">
+          </span>
+        </div>
+        <p class="field__hint" id="birthday-hint">В формате дд.мм.гггг или через календарь</p>
+        <p class="field__error" id="birthday-error" role="alert"></p>
+      </div>
+
+      <div class="field-wrap">
+        <div class="field field--pulse">
+          <label class="field__label visually-hidden" for="pulse">Пульс в покое, ударов в минуту</label>
+          <input class="field__input" type="text" id="pulse" name="pulse"
+                 placeholder="Введите свой пульс"
+                 inputmode="numeric" maxlength="3"
+                 aria-describedby="pulse-error pulse-hint" required>
+        </div>
+        <p class="field__hint" id="pulse-hint">Ударов в минуту, от 30 до 220</p>
+        <p class="field__error" id="pulse-error" role="alert"></p>
+      </div>
+
+      <div class="form__submit">
+        <button class="btn btn--wide" type="submit">Узнать свое число</button>
+      </div>
     </form>
   </section>
 
-  <section class="counter">
-    <p class="counter__num">2 143 581 206<sup>*</sup></p>
-    <p class="counter__caption">Столько ударов уже сделало ваше сердце</p>
-    <button class="counter__share" type="button" aria-label="Поделиться">
+  <!-- ===== Экран 3 — персональный результат ===== -->
+  <section class="counter is-locked" id="result" aria-labelledby="result-caption" hidden>
+    <p class="counter__num" id="result-number"><span class="counter__value">0</span><sup>*</sup></p>
+    <p class="counter__caption" id="result-caption">Столько ударов уже сделало ваше сердце</p>
+    <button class="counter__share" type="button" data-share="result" aria-label="Поделиться своим результатом">
       <img src="assets/frame33.svg" alt="" aria-hidden="true">
     </button>
   </section>
 
+  <!-- ===== Кому нужна помощь ===== -->
   <section class="fact container">
     <div class="fact__pic pic"><img src="assets/image2.png" alt="Девочка держит в руках сердце"></div>
     <p class="fact__text">Не каждое сердце бьется стабильно. 1 из 100 детей рождается с пороком сердца</p>
   </section>
 
-  <section class="result container" id="donate">
+  <!-- ===== Пожертвование ===== -->
+  <section class="result container is-locked" id="donate" hidden>
     <div class="progress">
       <div class="progress__track">
         <div class="progress__bar" style="--value:41.8%" role="progressbar" aria-valuenow="128541" aria-valuemin="0" aria-valuemax="307000">
@@ -108,28 +143,33 @@
       </div>
     </div>
 
-    <p class="result__pulse">Ваш пульс — 72 удара в минуту</p>
+    <p class="result__pulse">Ваш пульс — <span id="donate-pulse">72 удара</span> в минуту</p>
 
     <div class="donate">
-      <button class="donate__btn" type="button" aria-label="Убавить минуту">
+      <button class="donate__btn" type="button" data-minutes-step="-1" aria-label="Уменьшить количество минут и открыть окно пожертвования">
         <img src="assets/group18.svg" alt="" aria-hidden="true">
       </button>
-      <span class="donate__label">Подарить 1 минуту сердцу</span>
-      <button class="donate__btn" type="button" aria-label="Добавить минуту">
+      <button class="donate__label" type="button" data-open-donate>
+        Подарить <span id="donate-minutes">1 минуту</span> другому сердцу
+      </button>
+      <button class="donate__btn" type="button" data-minutes-step="1" aria-label="Увеличить количество минут и открыть окно пожертвования">
         <img src="assets/group17.svg" alt="" aria-hidden="true">
       </button>
     </div>
   </section>
 
-  <section class="thanks container">
+  <!-- ===== Экран благодарности (только после успешной оплаты) ===== -->
+  <section class="thanks container" id="thanks" hidden>
     <div class="thanks__art"><img src="assets/img1.png" alt="Люди украшают дерево-сердце"></div>
     <div class="thanks__card">
       <p class="thanks__title">Спасибо</p>
-      <p class="thanks__text">Сегодня ваше сердце помогло другому сердцу продолжать биться!</p>
+      <p class="thanks__text">Сегодня ваше сердце помогло другому сердцу продолжать биться.</p>
+      <a class="thanks__link" href="#facts">Узнать больше о своем сердце</a>
     </div>
   </section>
 
-  <section class="facts" aria-label="Факты о пульсе">
+  <!-- ===== Факты о сердце ===== -->
+  <section class="facts" id="facts" aria-label="Факты о пульсе">
     <div class="facts__stage">
       <img class="facts__wave" src="assets/vector41.svg" alt="" aria-hidden="true">
       <ul class="facts__track" id="facts-track">
@@ -141,7 +181,7 @@
         <div class="card__deco card__rot" style="left:25.453%;top:72.152%;width:20.818%;height:20.064%"><img src="assets/vector6.svg" alt="" style="width:95.024%;height:85.783%;transform:rotate(-7.22deg)"></div>
         <div class="card__deco card__rot" style="left:2.684%;top:5.785%;width:7.037%;height:10.801%"><img src="assets/group1.svg" alt="" style="width:96.574%;height:98.05%;transform:rotate(-6deg)"></div>
         <h3 class="card__title">Факт 1</h3>
-        <p class="card__text">Норма пульса составляет 60–90 ударов в минуту, хотя само понятие «нормальный пульс» по большему счёту не больше, чем фигура речи, поскольку пульс каждого человека индивидуален</p>
+        <p class="card__text">Норма пульса составляет 60–90 ударов в минуту, хотя само понятие «нормальный пульс» по большому счету не больше, чем фигура речи, поскольку пульс каждого человека индивидуален</p>
       </li>
       <li class="card" id="fact-2">
         <div class="card__deco" style="left:56.86%;top:0.0%;width:43.147%;height:52.289%"><img src="assets/vector8.svg" alt=""></div>
@@ -180,7 +220,7 @@
         <div class="card__deco" style="left:-2.806%;top:74.04%;width:103.894%;height:9.982%"><img src="assets/vector29.svg" alt=""></div>
         <div class="card__deco card__rot" style="left:2.684%;top:5.785%;width:7.037%;height:10.801%"><img src="assets/group3.svg" alt="" style="width:96.574%;height:98.05%;transform:rotate(-6deg)"></div>
         <h3 class="card__title">Факт 5</h3>
-        <p class="card__text">Пульс — это важный показатель работы не только сердца, но и всего организма. Измеряйте его время от времени в спокойном состоянии. Это поможет вовремя заметить скрытые проблемы со здоровьем</p>
+        <p class="card__text">Пульс — важный показатель работы не только сердца, но и всего организма. Измеряйте его время от времени в спокойном состоянии. Это поможет вовремя заметить скрытые проблемы со здоровьем</p>
       </li>
       </ul>
     </div>
@@ -205,7 +245,8 @@
     </div>
   </section>
 
-  <section class="lifetime">
+  <!-- ===== Персональная share-карточка ===== -->
+  <section class="lifetime is-locked" id="personal-card" hidden>
     <div class="lifetime__hearts" aria-hidden="true">
         <img src="assets/heart8.png" alt="">
         <img src="assets/heart8.png" alt="">
@@ -217,12 +258,12 @@
         <img src="assets/heart8.png" alt="">
     </div>
     <p class="lifetime__title">За всю жизнь мое сердце сделало</p>
-    <p class="lifetime__num">2 143 581 206<sup>*</sup></p>
+    <p class="lifetime__num" id="personal-number"><span class="counter__value">0</span><sup>*</sup></p>
     <p class="lifetime__text">ударов. Сегодня я подарил минуту <br class="br-lg">его ритма ребенку с пороком сердца</p>
-    <p class="lifetime__cta">
+    <button class="lifetime__cta" type="button" data-share="final">
       <span>Подари минуту сердцу <span class="lifetime__hash">#</span>пульсуй</span>
       <img src="assets/frame34.svg" alt="" aria-hidden="true">
-    </p>
+    </button>
   </section>
 
   <section class="outro container">
@@ -250,6 +291,54 @@
       «Детские сердца» ИНН 7704244292 ОГРН 1027746000490 119002, г. Москва, Карманицкий переулок, д. 9</p>
   </div>
 </footer>
+
+<!-- ===== Поп-ап пожертвования ===== -->
+<div class="modal" id="donate-modal" hidden>
+  <div class="modal__overlay" data-close-modal></div>
+  <div class="modal__dialog" role="dialog" aria-modal="true" aria-labelledby="donate-modal-title">
+    <button class="modal__close" type="button" data-close-modal aria-label="Закрыть">&times;</button>
+
+    <p class="modal__title" id="donate-modal-title">Подарите минуту своего ритма</p>
+    <p class="modal__lead">Ваш пульс — <b id="modal-pulse">72</b> удара в минуту.
+      Одна минута вашего сердца — <b id="modal-rate">72 ₽</b> для ребенка с пороком сердца.</p>
+
+    <div class="minutes" id="minutes-options" role="radiogroup" aria-label="Сколько минут подарить">
+      <!-- Кнопки вариантов подставляются скриптом: 1, 2, 3, 5, 10 минут -->
+    </div>
+
+    <p class="modal__sum">
+      <span>Сумма пожертвования</span>
+      <b id="donate-sum">72 ₽</b>
+    </p>
+
+    <!-- Место под платежную форму. Подключается платежный сервис фонда. -->
+    <div class="pay-slot" id="pay-slot" hidden></div>
+
+    <button class="btn btn--wide" type="button" id="donate-submit">Подарить</button>
+    <p class="modal__note">Платежная форма будет подключена позже.
+      <button class="link-btn" type="button" id="demo-success">Показать экран благодарности (демо)</button>
+    </p>
+  </div>
+</div>
+
+<!-- ===== Поп-ап share-карточки ===== -->
+<div class="modal" id="share-modal" hidden>
+  <div class="modal__overlay" data-close-modal></div>
+  <div class="modal__dialog modal__dialog--share" role="dialog" aria-modal="true" aria-labelledby="share-modal-title">
+    <button class="modal__close" type="button" data-close-modal aria-label="Закрыть">&times;</button>
+    <p class="modal__title" id="share-modal-title">Ваша карточка</p>
+    <div class="share-preview">
+      <img id="share-image" alt="Персональная карточка с количеством ударов вашего сердца">
+    </div>
+    <p class="share-text" id="share-text"></p>
+    <div class="share-actions">
+      <button class="btn" type="button" id="share-native" hidden>Поделиться</button>
+      <a class="btn btn--ghost" id="share-download" download="pulsuy.png">Скачать картинку</a>
+      <button class="btn btn--ghost" type="button" id="share-copy">Скопировать текст</button>
+    </div>
+    <p class="share-status" id="share-status" role="status" aria-live="polite"></p>
+  </div>
+</div>
 
 <script src="script.js"></script>
 </body>
