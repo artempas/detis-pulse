@@ -1,0 +1,868 @@
+/* Пульсуй_2026 — вёрстка по макету Figma (node 2001:465).
+   Поточная вёрстка: секции, flex/grid, адаптивные размеры.
+   Эталонная ширина макета — 1920px, размеры переведены в clamp()/проценты. */
+
+/* ---------- Шрифты ---------- */
+@font-face {
+  font-family: "Intro";
+  src: url("fonts/INTRO-REGULAR.OTF") format("opentype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Intro";
+  src: url("fonts/INTRO-BOLD.OTF") format("opentype");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Open Sans";
+  src: url("fonts/OpenSans-VariableFont_wdth,wght.ttf") format("truetype-variations");
+  font-weight: 300 800;
+  font-stretch: 75% 125%;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Open Sans";
+  src: url("fonts/OpenSans-Italic-VariableFont_wdth,wght.ttf") format("truetype-variations");
+  font-weight: 300 800;
+  font-stretch: 75% 125%;
+  font-style: italic;
+  font-display: swap;
+}
+
+/* ---------- Токены ---------- */
+:root {
+  --red: #bf2c23;
+  --ink: #000;
+  --gutter: clamp(16px, 4.16vw, 80px);
+  --content: 1760px;
+
+  --intro: Intro, Inter, system-ui, sans-serif;
+  --os: "Open Sans", system-ui, sans-serif;
+  --inter: Inter, system-ui, sans-serif;
+
+  /* типографика: clamp(мин, доля от 1920px, макет) */
+  --fs-lead: clamp(20px, 2.4vw, 46px);
+  --fs-h2: clamp(22px, 2.92vw, 56px);
+  --fs-num: clamp(38px, 7.29vw, 140px);
+  --fs-body: clamp(15px, 1.25vw, 24px);
+}
+
+/* ---------- База ---------- */
+*, *::before, *::after { box-sizing: border-box; }
+
+html { -webkit-text-size-adjust: 100%; }
+
+body {
+  margin: 0;
+  background: #fff;
+  color: var(--ink);
+  font-family: var(--intro);
+  overflow-x: hidden;
+}
+
+img, svg { display: block; max-width: 100%; }
+
+p { margin: 0; }
+
+a { color: inherit; }
+
+button {
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: 0;
+  cursor: pointer;
+}
+
+.container {
+  width: min(100% - var(--gutter) * 2, var(--content));
+  margin-inline: auto;
+}
+
+.accent { color: var(--red); }
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* Картинка, вписанная в блок заданных пропорций */
+.pic {
+  position: relative;
+  overflow: hidden;
+}
+.pic > img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  object-fit: cover;
+}
+
+/* ---------- Шапка ---------- */
+.header {
+  position: relative;
+  padding-block: clamp(20px, 2.66vw, 51px) clamp(18px, 1.72vw, 33px);
+}
+
+.header__inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: clamp(16px, 2vw, 40px);
+}
+
+.header__logo img { width: clamp(180px, 20.36vw, 391px); height: auto; }
+
+.header__help {
+  display: flex;
+  align-items: center;
+  gap: clamp(10px, 1.82vw, 35px);
+  font-family: var(--inter);
+  font-size: clamp(18px, 2.08vw, 40px);
+  line-height: 1.2;
+  text-decoration: none;
+}
+.header__help img { width: clamp(60px, 7.19vw, 138px); height: auto; }
+
+/* Кардиограмма прижата базовой линией к нижней границе шапки */
+.header__pulse {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  height: auto;
+  transform: translateY(35.25%);
+  pointer-events: none;
+}
+
+/* ---------- Первый экран ---------- */
+.hero {
+  margin-top: clamp(48px, 8.45vw, 162px);
+  text-align: left;
+}
+
+.hero__title {
+  margin: 0 auto;
+  width: clamp(240px, 55.6vw, 1067.79px);
+}
+.hero__title img { width: 100%; height: auto; }
+
+.hero__lead {
+  max-width: 1025px;
+  margin: clamp(24px, 3.83vw, 73px) auto 0;
+  font-size: var(--fs-lead);
+  line-height: 1.3;
+}
+
+.hero__heart {
+  display: inline-block;
+  width: clamp(26px, 2.69vw, 51.64px);
+  height: auto;
+  margin-left: -0.05em;
+  vertical-align: -0.1em;
+  transform: rotate(12.78deg);
+}
+
+.hero__sub {
+  margin: clamp(56px, 10vw, 192px) auto 0;
+  font-size: var(--fs-lead);
+  line-height: 1.3;
+  text-align: center;
+}
+
+/* ---------- Шаги ---------- */
+.steps {
+  margin-top: clamp(40px, 4.16vw, 80px);
+}
+
+.steps__list {
+  max-width: 1500px;
+  margin-inline: auto;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: clamp(20px, 4.79vw, 92px);
+  margin: 0 auto;
+  padding: 0;
+  list-style: none;
+}
+
+.step {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(6px, 0.72vw, 14px);
+}
+
+.step__head {
+  display: flex;
+  align-items: center;
+  gap: clamp(8px, 1.2vw, 23px);
+  min-height: clamp(28px, 3.98vw, 76px);
+}
+
+.step__num {
+  font-family: var(--os);
+  font-weight: 600;
+  font-size: clamp(20px, 1.62vw, 31.09px);
+  line-height: 1.3;
+}
+
+.step__clock { width: clamp(34px, 3.09vw, 59.27px); height: auto; }
+
+.step__hint {
+  font-family: var(--os);
+  font-weight: 600;
+  font-size: clamp(13px, 1.08vw, 20.73px);
+  line-height: 1.3;
+  color: var(--red);
+  white-space: nowrap;
+}
+
+/* Иллюстрации шагов выровнены по нижнему краю */
+.step__pic {
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  min-height: clamp(70px, 6.89vw, 132.2px);
+}
+/* .step__figure задаёт размер иллюстрации и служит системой координат
+   для дорисованных поверх неё элементов */
+.step__figure {
+  position: relative;
+  display: block;
+}
+.step__figure > img { width: 100%; height: auto; }
+
+.step__pic--1 .step__figure { width: clamp(120px, 12.09vw, 232.2px); }
+.step__pic--2 .step__figure { width: clamp(118px, 11.68vw, 224.24px); }
+.step__pic--3 .step__figure { width: clamp(118px, 11.64vw, 223.54px); }
+
+/* Дорисованная стрелка поверх иллюстрации 3-го шага */
+.step__figure > img.step__doodle {
+  position: absolute;
+  left: 21.33%;
+  top: 27.58%;
+  width: 39.18%;
+  height: auto;
+  transform: rotate(6.08deg);
+}
+
+.step__text {
+  margin-top: auto;
+  padding-top: clamp(8px, 0.9vw, 17px);
+  font-family: var(--os);
+  font-size: clamp(13px, 1.08vw, 20.73px);
+  line-height: 1.3;
+}
+
+/* 4-й шаг: счётчик и кнопка */
+.step--timer { align-items: stretch; }
+
+.step__count {
+  display: flex;
+  justify-content: center;
+  gap: 0.06em;
+  font-family: var(--os);
+  font-weight: 700;
+  font-size: clamp(40px, 4.32vw, 82.91px);
+  line-height: 1.3;
+  color: var(--red);
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: auto;
+  padding: clamp(14px, 1.69vw, 32.4px) clamp(16px, 2.3vw, 44px);
+  font-family: var(--os);
+  font-weight: 600;
+  font-size: clamp(14px, 1.35vw, 25.91px);
+  line-height: 1.3;
+  color: #fff;
+  text-align: center;
+  background: var(--red);
+  border: 2.591px solid var(--red);
+  border-radius: clamp(10px, 1.08vw, 20.73px);
+  transition: background-color .2s, border-color .2s;
+}
+.btn:hover { background: #a32118; border-color: #a32118; }
+
+/* ---------- Форма ---------- */
+.form {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: clamp(16px, 1.3vw, 25px);
+  margin-top: clamp(40px, 4.9vw, 94px);
+}
+
+.field {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 1 clamp(280px, 29.74vw, 571px);
+  padding: clamp(12px, 1.3vw, 25px) clamp(12px, 1.5vw, 30px) clamp(10px, 1.09vw, 21px);
+  border: 2px solid #bfbfbf;
+  border-radius: 16px;
+}
+
+.field input {
+  width: min(100%, 382px);
+  padding: 0 0 clamp(3px, 0.26vw, 5px);
+  font-family: var(--os);
+  font-weight: 600;
+  font-size: var(--fs-body);
+  line-height: 1.3;
+  color: #4a4a4a;
+  text-align: center;
+  background: none;
+  border: 0;
+  border-bottom: 2px solid var(--red);
+  border-radius: 0;
+  outline-offset: 4px;
+}
+.field--pulse input { width: min(100%, 241px); }
+.field input::placeholder { color: #4a4a4a; opacity: .35; }
+
+/* ---------- Красный счётчик ---------- */
+.counter {
+  position: relative;
+  width: 100%;
+  margin-top: clamp(48px, 5.2vw, 100px);
+  padding: clamp(28px, 3.02vw, 58px) clamp(90px, 9vw, 170px) clamp(24px, 2.76vw, 53px);
+  color: #fff;
+  text-align: center;
+  background: var(--red);
+  border-radius: 16px;
+}
+
+.counter__num,
+.lifetime__num {
+  font-weight: 700;
+  font-size: var(--fs-num);
+  line-height: 1.3;
+  white-space: nowrap;
+}
+
+.counter__num sup,
+.lifetime__num sup {
+  font-size: clamp(16px, 2.08vw, 40px);
+  vertical-align: super;
+  line-height: 0;
+}
+
+.counter__caption {
+  font-weight: 700;
+  font-size: var(--fs-h2);
+  line-height: 1.3;
+}
+
+.counter__share {
+  position: absolute;
+  top: 50%;
+  right: clamp(12px, 2.34vw, 45px);
+  width: clamp(56px, 6.46vw, 124px);
+  transform: translateY(-50%);
+}
+.counter__share img { width: 100%; height: auto; }
+
+/* ---------- Девочка + факт ---------- */
+.fact {
+  max-width: 1500px;
+  display: flex;
+  align-items: center;
+  gap: clamp(24px, 5.47vw, 105px);
+  margin-top: clamp(48px, 5.68vw, 109px);
+}
+
+.fact__pic {
+  flex: 0 0 clamp(180px, 27.92vw, 536px);
+  aspect-ratio: 536 / 528;
+  border-radius: 8px;
+}
+
+.fact__text {
+  font-size: var(--fs-lead);
+  line-height: 1.3;
+}
+
+/* ---------- Результат ---------- */
+.result {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: clamp(48px, 7.92vw, 152px);
+}
+
+.progress,
+.donate {
+  width: min(100%, 813px);
+  border-radius: clamp(14px, 1.25vw, 24px);
+}
+
+.progress {
+  padding: 5px;
+  background: #f6ddde;
+}
+
+.progress__track {
+  position: relative;
+  overflow: hidden;
+  border-radius: clamp(12px, 1.09vw, 21px);
+  background: #ffedef;
+}
+
+.progress__bar {
+  display: flex;
+  align-items: center;
+  width: var(--value, 42%);
+  min-width: max-content;
+  padding: clamp(12px, 2.24vw, 43px) clamp(14px, 1.35vw, 26px);
+  font-family: var(--inter);
+  font-size: clamp(15px, 1.54vw, 29.6px);
+  line-height: 1;
+  color: #fff;
+  white-space: nowrap;
+  background: var(--red);
+  border-radius: clamp(12px, 1.09vw, 21px);
+}
+.progress__bar b { font-weight: 600; padding-left: .3em; }
+
+.result__pulse {
+  margin-top: clamp(24px, 3.12vw, 60px);
+  font-weight: 700;
+  font-size: clamp(20px, 2.5vw, 48px);
+  line-height: 1.3;
+  color: var(--red);
+  text-align: center;
+}
+
+.donate {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: clamp(12px, 1.5vw, 30px);
+  margin-top: clamp(16px, 1.61vw, 31px);
+  padding: clamp(12px, 1.77vw, 34px) clamp(14px, 1.82vw, 35px);
+  background: #fff;
+  border: 1px solid #614848;
+}
+
+.donate__label {
+  flex: 1;
+  font-weight: 700;
+  font-size: clamp(16px, 1.67vw, 32px);
+  line-height: 1.2;
+  color: var(--red);
+  text-align: center;
+}
+
+.donate__btn { flex: 0 0 auto; width: clamp(38px, 3.33vw, 64px); }
+.donate__btn img { width: 100%; height: auto; }
+
+/* ---------- Спасибо ---------- */
+.thanks {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: clamp(48px, 5.83vw, 112px);
+}
+
+.thanks__art { width: min(100%, 1125px); }
+.thanks__art img { width: 100%; height: auto; }
+
+.thanks__card {
+  position: relative;
+  width: min(100%, 1043px);
+  margin-top: max(-107px, -5.58vw);
+  padding: clamp(16px, 1.75vw, 33.6px) clamp(16px, 2vw, 40px) clamp(18px, 2.6vw, 50px);
+  text-align: center;
+  background: rgba(255, 255, 255, .3);
+  border: 1.05px solid var(--red);
+  border-radius: clamp(14px, 1.31vw, 25.19px);
+  backdrop-filter: blur(2px);
+}
+
+.thanks__title {
+  font-weight: 700;
+  font-size: clamp(26px, 2.62vw, 50.38px);
+  line-height: 1;
+  color: var(--red);
+}
+
+.thanks__text {
+  margin-top: clamp(10px, 1.2vw, 23px);
+  font-size: clamp(13px, 1.31vw, 25.19px);
+  line-height: 1;
+}
+
+/* ---------- Карточки-факты ---------- */
+.facts {
+  position: relative;
+  margin-top: clamp(48px, 5.2vw, 100px);
+  padding-bottom: clamp(60px, 10.4vw, 200px);
+}
+
+.facts__stage { position: relative; }
+
+/* Декоративная волна за карточками */
+.facts__wave {
+  position: absolute;
+  left: 5.47%;
+  top: min(84px, 4.4vw);
+  width: 81.82%;
+  height: auto;
+  transform: scaleX(-1);
+  pointer-events: none;
+}
+
+.facts__track {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  gap: clamp(24px, 5.1vw, 98px);
+  margin: 0;
+  padding: 0 clamp(16px, 6.63vw, 127px);
+  list-style: none;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scroll-padding-inline: clamp(16px, 6.63vw, 127px);
+  scrollbar-width: none;
+}
+.facts__track::-webkit-scrollbar { display: none; }
+
+.card {
+  position: relative;
+  flex: 0 0 min(615.99px, 88vw);
+  aspect-ratio: 615.989 / 440.403;
+  padding: 14.93% 7.31% 0;
+  overflow: hidden;
+  background: #fcfcfc;
+  border-radius: 23.03px;
+  scroll-snap-align: start;
+  container-type: inline-size;
+}
+
+/* Декор карточек: доли от размеров карточки, поэтому масштабируется вместе с ней */
+.card__deco {
+  position: absolute;
+  pointer-events: none;
+}
+.card__deco > img {
+  width: 100%;
+  height: 100%;
+  max-width: none;
+}
+/* повёрнутый декор: снаружи bbox, внутри — невращённый слой по центру */
+.card__rot {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.card__rot > img {
+  flex: none;
+  max-width: none;
+}
+
+.card__title {
+  position: relative;
+  font-family: var(--inter);
+  font-weight: 700;
+  font-size: 5.3cqw;
+  line-height: 1;
+  color: #171717;
+}
+
+.card__text {
+  position: relative;
+  max-width: 63cqw;
+  margin-top: 2.75cqw;
+  font-family: var(--os);
+  font-size: 2.96cqw;
+  line-height: 1.63;
+  color: #202020;
+}
+
+/* Пагинация */
+.facts__nav {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(10px, 1.3vw, 25px);
+  margin-top: clamp(24px, 2.08vw, 40px);
+}
+
+.nav-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  width: clamp(38px, 3.18vw, 61px);
+  aspect-ratio: 1;
+  border-radius: 50%;
+}
+.nav-btn img { width: 36%; height: auto; }
+.nav-btn--prev { background: #fff; border: 1px solid rgba(0, 0, 0, .24); }
+.nav-btn--prev img { transform: scaleX(-1); }
+.nav-btn--next { background: var(--red); }
+.nav-btn[disabled] { cursor: default; }
+
+.dots {
+  display: flex;
+  align-items: center;
+  gap: clamp(8px, 0.78vw, 15px);
+  margin: 0;
+  padding: 0 clamp(6px, 1.3vw, 25px);
+  list-style: none;
+}
+.dots button {
+  display: block;
+  width: clamp(9px, 0.73vw, 13.93px);
+  aspect-ratio: 1;
+  background: #f1c7cd;
+  border-radius: 50%;
+}
+.dots button[aria-current="true"] { background: var(--red); }
+
+/* Декор возле пагинации */
+.facts__heart,
+.facts__girl {
+  position: absolute;
+  pointer-events: none;
+}
+.facts__heart {
+  top: min(39px, 2.03vw);
+  right: 9.63%;
+  width: 4.49%;
+  transform: rotate(3.6deg);
+}
+.facts__heart img { width: 100%; height: auto; }
+.facts__girl {
+  top: min(61px, 3.18vw);
+  right: 3.9%;
+  width: 7.34%;
+  aspect-ratio: 141 / 198;
+  overflow: hidden;
+  transform: scaleX(-1);
+}
+.facts__girl img {
+  position: absolute;
+  left: -90.25%;
+  top: -108.9%;
+  width: 292.81%;
+  height: 208.9%;
+  max-width: none;
+}
+
+/* ---------- Красный блок «за всю жизнь» ---------- */
+.lifetime {
+  position: relative;
+  padding: clamp(28px, 2.4vw, 46px) clamp(16px, 4vw, 76px) clamp(32px, 3.4vw, 65px);
+  overflow: hidden;
+  color: #fff;
+  text-align: center;
+  background: var(--red);
+}
+
+.lifetime__hearts {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.lifetime__hearts img {
+  position: absolute;
+  width: 5.27%;
+  height: auto;
+  mix-blend-mode: multiply;
+}
+/* левая и правая колонки декоративных сердец */
+.lifetime__hearts img:nth-child(1) { left: 3.77%; top: 6.5%; }
+.lifetime__hearts img:nth-child(2) { left: 0.21%; top: 29.3%; }
+.lifetime__hearts img:nth-child(3) { left: 3.77%; top: 52.1%; }
+.lifetime__hearts img:nth-child(4) { left: 0.21%; top: 74.8%; }
+.lifetime__hearts img:nth-child(5) { right: 3.77%; top: 7.4%; }
+.lifetime__hearts img:nth-child(6) { right: 0.21%; top: 30.2%; }
+.lifetime__hearts img:nth-child(7) { right: 3.77%; top: 53%; }
+.lifetime__hearts img:nth-child(8) { right: 0.21%; top: 75.7%; }
+
+.lifetime > *:not(.lifetime__hearts) { position: relative; }
+
+.lifetime__title {
+  font-weight: 700;
+  font-size: var(--fs-h2);
+  line-height: 1.3;
+}
+
+.lifetime__text {
+  margin-top: clamp(12px, 1.35vw, 26px);
+  font-size: clamp(20px, 2.5vw, 48px);
+  line-height: 1.1;
+}
+
+.lifetime__cta {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(12px, 1.8vw, 35px);
+  margin-top: clamp(20px, 2.55vw, 49px);
+  font-weight: 700;
+  font-size: var(--fs-h2);
+  line-height: 1.3;
+}
+.lifetime__hash { font-weight: 400; }
+.lifetime__cta img { width: clamp(44px, 4.48vw, 86px); height: auto; }
+
+/* ---------- Финальный блок ---------- */
+.outro {
+  display: grid;
+  grid-template-areas: "stack";
+  align-items: center;
+  padding-top: clamp(40px, 6vw, 116px);
+}
+.outro > * { grid-area: stack; }
+
+.outro__girl {
+  justify-self: start;
+  align-self: end;
+  width: min(56%, 980px);
+  aspect-ratio: 980 / 635;
+}
+
+/* текст с логотипом лежат поверх иллюстрации: .outro__girl позиционирован,
+   поэтому без z-index он перекрывал бы их */
+.outro__row {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: clamp(24px, 4.9vw, 94px);
+  width: 100%;
+  padding-left: 21.25%;
+}
+
+.outro__text {
+  max-width: min(724px, 37.7vw);
+  font-weight: 700;
+  font-size: var(--fs-h2);
+  line-height: 1.3;
+  color: var(--red);
+}
+
+.outro__logo { width: clamp(160px, 20.36vw, 391px); }
+.outro__logo img { width: 100%; height: auto; }
+
+/* ---------- Подвал ---------- */
+.footer {
+  position: relative;
+  padding-block: clamp(28px, 3.85vw, 74px) clamp(28px, 2.86vw, 55px);
+  color: #fff;
+  background: var(--red);
+}
+
+/* всплеск кардиограммы на верхней кромке подвала */
+.footer::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: 100%;
+  width: 100%;
+  padding-top: 4.5569%;
+  background: url("assets/rectangle17.svg") top left / 100% auto no-repeat;
+}
+
+.footer__lead {
+  font-weight: 700;
+  font-size: var(--fs-body);
+  line-height: 1.3;
+}
+.footer__lead + .footer__lead { margin-top: 1.3em; }
+.footer__lead strong { font-size: clamp(17px, 1.46vw, 28px); }
+
+.footer__note {
+  margin-top: clamp(20px, 3.33vw, 64px);
+  font-family: var(--os);
+  font-weight: 300;
+  font-size: clamp(11px, 1.04vw, 20px);
+  line-height: 1.3;
+  color: #f6ddde;
+}
+
+/* ---------- Адаптив ---------- */
+@media (max-width: 1100px) {
+  .facts__wave,
+  .facts__heart,
+  .facts__girl { display: none; }
+
+  .facts { padding-bottom: clamp(40px, 6vw, 80px); }
+
+  .outro {
+    grid-template-areas: "girl" "row";
+    justify-items: center;
+    gap: 24px;
+    /* запас под всплеск кардиограммы на кромке подвала */
+    padding-bottom: calc(24px + 4.6%);
+  }
+  .outro__girl { grid-area: girl; width: min(80%, 620px); justify-self: center; }
+  .outro__row {
+    grid-area: row;
+    justify-content: center;
+    padding-left: 0;
+    flex-wrap: wrap;
+    text-align: center;
+  }
+  .outro__text { max-width: none; text-align: center; }
+}
+
+@media (max-width: 900px) {
+  .steps__list { grid-template-columns: repeat(2, minmax(0, 1fr)); row-gap: 40px; }
+
+  .fact { flex-direction: column; text-align: center; }
+  .fact__pic { flex: 0 0 auto; width: min(80%, 420px); }
+
+  .counter { padding-inline: clamp(16px, 5vw, 60px); }
+  .counter__share {
+    position: static;
+    margin: 20px auto 0;
+    transform: none;
+  }
+
+  .card { padding: 60px 32px 0; }
+}
+
+@media (max-width: 640px) {
+  :root { --fs-lead: clamp(17px, 4.6vw, 24px); }
+
+  .br-lg { display: none; }
+
+  .steps__list { grid-template-columns: minmax(0, 1fr); }
+  .step__pic { min-height: 0; }
+  .step__figure { width: min(70%, 230px) !important; }
+
+  .header__help span { display: none; }
+
+  .form { flex-direction: column; align-items: center; }
+  .field { flex: 0 0 auto; width: 100%; }
+
+  .donate { flex-wrap: nowrap; }
+  .donate__label { font-size: clamp(14px, 4vw, 20px); }
+
+  .card { aspect-ratio: auto; min-height: 320px; padding: 44px 24px 32px; }
+  .card__text { max-width: none; }
+
+  .lifetime__hearts { display: none; }
+}
