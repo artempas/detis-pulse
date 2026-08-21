@@ -492,8 +492,10 @@ button {
 .counter__num sup,
 .lifetime__num sup {
   font-size: clamp(16px, 2.08vw, 40px);
-  vertical-align: super;
-  line-height: 0;
+  /* top, а не super: super сдвигает на фиксированную долю от базовой линии
+     и не совпадает с верхним краем цифр при таком масштабе шрифта */
+  vertical-align: top;
+  line-height: 1;
 }
 
 .counter__caption {
@@ -1175,8 +1177,8 @@ body.is-modal-open { overflow: hidden; }
 /* У «выбрать время» нет суммы — центрируем надпись по высоте соседних плиток */
 .minutes__item--custom { justify-content: center; }
 .minutes__item--custom .minutes__count {
-  font-weight: 600;
-  color: var(--red);
+  /* font-weight: 600; */
+  color: #3a3a3a;
 }
 
 /* Поле своего значения раскрывается под плитками */

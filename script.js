@@ -168,23 +168,6 @@
     return chars.join('');
   }
 
-  /* Индекс цифрового слота, в который попадёт следующий ввод при курсоре pos */
-  function digitIndexAtCaret(pos) {
-    for (var i = 0; i < DATE_DIGIT_POS.length; i++) {
-      if (DATE_DIGIT_POS[i] >= pos) return i;
-    }
-    return DATE_DIGIT_POS.length;
-  }
-
-  /* Индекс последнего цифрового слота перед курсором pos (для backspace) */
-  function prevDigitIndexAtCaret(pos) {
-    var idx = -1;
-    for (var i = 0; i < DATE_DIGIT_POS.length; i++) {
-      if (DATE_DIGIT_POS[i] < pos) idx = i; else break;
-    }
-    return idx;
-  }
-
   function digitsFromValue(value) {
     var d = (value || '').replace(/\D/g, '').slice(0, 8);
     return d.split('');
@@ -264,11 +247,21 @@
       return 8;
     }
 
-    function hasAnyDigit() {
-      for (var i = 0; i < 8; i++) {
-        if (birthdayDigits[i]) return true;
+    function lastFilledDigitIndex() {
+      for (var i = 7; i >= 0; i--) {
+        if (birthdayDigits[i]) return i;
       }
-      return false;
+      return -1;
+    }
+
+    function hasAnyDigit() {
+      return lastFilledDigitIndex() >= 0;
+    }
+
+    /* Курсор всегда стоит сразу за последней введённой цифрой —
+       редактирование «в середине» кликом или стрелками не предусмотрено */
+    function caretToEnd() {
+      renderBirthday(firstEmptyDigitIndex());
     }
 
     /* Ограничения нативного календаря */
@@ -286,14 +279,19 @@
       });
     }
 
-    birthday.addEventListener('focus', function () {
-      renderBirthday(firstEmptyDigitIndex());
+    birthday.addEventListener('focus', caretToEnd);
+
+    /* Клик/выделение не должны переставлять курсор в середину маски —
+       после того как браузер расставит выделение сами, возвращаем его в конец */
+    birthday.addEventListener('mouseup', function (e) {
+      e.preventDefault();
+      caretToEnd();
     });
 
     birthday.addEventListener('keydown', function (e) {
       if (/^[0-9]$/.test(e.key)) {
         e.preventDefault();
-        var idx = digitIndexAtCaret(birthday.selectionStart);
+        var idx = firstEmptyDigitIndex();
         if (idx >= 8) return;
         birthdayDigits[idx] = e.key;
         renderBirthday(idx + 1);
@@ -302,42 +300,29 @@
         }
         return;
       }
-      if (e.key === 'Backspace') {
+      if (e.key === 'Backspace' || e.key === 'Delete') {
         e.preventDefault();
-        var selStart = birthday.selectionStart, selEnd = birthday.selectionEnd;
-        if (selEnd > selStart) {
-          var from = digitIndexAtCaret(selStart), to = prevDigitIndexAtCaret(selEnd);
-          for (var i = from; i <= to; i++) birthdayDigits[i] = '';
-          renderBirthday(from);
-        } else {
-          var prevIdx = prevDigitIndexAtCaret(selStart);
-          if (prevIdx < 0) return;
-          birthdayDigits[prevIdx] = '';
-          renderBirthday(prevIdx);
-        }
+        var lastIdx = lastFilledDigitIndex();
+        if (lastIdx < 0) return;
+        birthdayDigits[lastIdx] = '';
+        renderBirthday(lastIdx);
         if (birthday.getAttribute('aria-invalid') === 'true') {
           setError(birthday, validateBirthday(birthday));
         }
         return;
       }
-      if (e.key === 'Delete') {
+      /* Стрелки, Home/End и т.п. не должны сдвигать курсор с конца */
+      if (e.key === 'ArrowLeft' || e.key === 'ArrowRight' || e.key === 'Home' || e.key === 'End') {
         e.preventDefault();
-        var delIdx = digitIndexAtCaret(birthday.selectionStart);
-        if (delIdx >= 8) return;
-        birthdayDigits[delIdx] = '';
-        renderBirthday(delIdx);
-        if (birthday.getAttribute('aria-invalid') === 'true') {
-          setError(birthday, validateBirthday(birthday));
-        }
       }
     });
 
     birthday.addEventListener('paste', function (e) {
       e.preventDefault();
       var text = (e.clipboardData || window.clipboardData).getData('text');
-      birthdayDigits = digitsFromValue(text);
-      while (birthdayDigits.length < 8) birthdayDigits.push('');
-      renderBirthday(Math.min(digitsFromValue(text).length, 8));
+      var pasted = digitsFromValue(text);
+      birthdayDigits = pasted.concat(new Array(8 - pasted.length).fill(''));
+      renderBirthday(pasted.length);
       if (birthday.getAttribute('aria-invalid') === 'true') {
         setError(birthday, validateBirthday(birthday));
       }
@@ -629,7 +614,7 @@
     customBtn.setAttribute('role', 'radio');
     customBtn.setAttribute('aria-checked', 'false');
     customBtn.setAttribute('aria-controls', 'custom-time');
-    customBtn.innerHTML = '<span class="minutes__count">Выбрать время</span>';
+    customBtn.innerHTML = '<span class="minutes__count">Выбрать<br>время</span>';
     box.appendChild(customBtn);
 
     function renderOptions() {
