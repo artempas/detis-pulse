@@ -270,14 +270,47 @@ button {
 /* 4-й шаг: счётчик и кнопка */
 .step--timer { align-items: stretch; }
 
-.step__count {
+.step__ring {
+  position: relative;
   display: flex;
+  align-items: center;
   justify-content: center;
-  gap: 0.06em;
+  width: clamp(100px, 9.4vw, 180px);
+  height: clamp(100px, 9.4vw, 180px);
+  margin: 0 auto;
+}
+
+.step__ring-svg {
+  display: none;
+  width: 100%;
+  height: 100%;
+  transform: scaleX(-1) rotate(-90deg);
+}
+
+.step__ring.is-running .step__ring-svg { display: block; }
+.step__ring.is-running .step__ring-value { display: none; }
+
+.step__ring-track,
+.step__ring-progress {
+  fill: none;
+  stroke-width: 14;
+}
+
+.step__ring-track { stroke: #e2d3d3; }
+
+.step__ring-progress {
+  stroke: var(--red);
+  stroke-linecap: round;
+  stroke-dasharray: 314.159;
+  stroke-dashoffset: 0;
+  transition: stroke-dashoffset 1s linear;
+}
+
+.step__ring-value {
   font-family: var(--os);
   font-weight: 700;
-  font-size: clamp(40px, 4.32vw, 82.91px);
-  line-height: 1.3;
+  font-size: clamp(36px, 4vw, 76px);
+  line-height: 1;
   color: var(--red);
 }
 
@@ -315,15 +348,6 @@ button {
   text-underline-offset: 3px;
 }
 
-/* Отсчёт минуты */
-.step__count.is-running span { animation: beat 1s ease-in-out infinite; }
-
-@keyframes beat {
-  0%, 100% { transform: scale(1); }
-  20% { transform: scale(1.12); }
-  40% { transform: scale(1); }
-}
-
 .step__reset {
   margin-top: clamp(8px, 0.9vw, 16px);
   font-family: var(--os);
@@ -344,7 +368,7 @@ button {
 .step__status:empty { display: none; }
 
 @media (prefers-reduced-motion: reduce) {
-  .step__count.is-running span { animation: none; }
+  .step__ring-progress { transition: none; }
 }
 
 /* ---------- Форма ---------- */
@@ -566,21 +590,16 @@ button {
   margin-top: clamp(16px, 1.61vw, 31px);
   padding: clamp(12px, 1.77vw, 34px) clamp(14px, 1.82vw, 35px);
   background: #fff;
-  border: 1px solid #614848;
 }
 
 .donate__label {
+  display: block;
   flex: 1;
-  padding: 4px;
-  font-weight: 700;
+  margin-top: 0;
   font-size: clamp(16px, 1.67vw, 32px);
   line-height: 1.2;
-  color: var(--red);
   text-align: center;
-  border-radius: 8px;
-  transition: background-color .2s;
 }
-.donate__label:hover { background: #fdf1f0; }
 
 .donate__btn { flex: 0 0 auto; width: clamp(38px, 3.33vw, 64px); }
 .donate__btn img { width: 100%; height: auto; }
@@ -683,6 +702,12 @@ button {
   box-shadow: 0 6px 28px rgba(191, 44, 35, .10);
   scroll-snap-align: start;
 }
+/* Последняя карточка прижимается к правому краю, а не к левому:
+   иначе после неё остаётся паддинг-«хвост», в который можно проскроллить
+   мимо снап-точки — карусель на свайпе перелетает и дёргается назад */
+.facts__track > .card:last-child {
+  scroll-snap-align: end;
+}
 
 /* Декор карточек: доли от размеров карточки, поэтому масштабируется вместе с ней */
 .card__deco {
@@ -755,23 +780,6 @@ button {
 .nav-btn--prev img { transform: scaleX(-1); }
 .nav-btn--next { background: var(--red); }
 .nav-btn[disabled] { cursor: default; }
-
-.dots {
-  display: flex;
-  align-items: center;
-  gap: clamp(8px, 0.78vw, 15px);
-  margin: 0;
-  padding: 0 clamp(6px, 1.3vw, 25px);
-  list-style: none;
-}
-.dots button {
-  display: block;
-  width: clamp(9px, 0.73vw, 13.93px);
-  aspect-ratio: 1;
-  background: #f1c7cd;
-  border-radius: 50%;
-}
-.dots button[aria-current="true"] { background: var(--red); }
 
 /* Декор возле пагинации */
 .facts__heart,
@@ -907,21 +915,41 @@ button {
 .outro__logo img { width: 100%; height: auto; }
 
 /* ---------- Подвал ---------- */
+/* Кардиограмма на кромке подвала — одна фигура (assets/rectangle17.svg,
+   viewBox 1922x688): всплеск уходит вверх от кромки, а следом за ним
+   отрицательный выступ врезается вниз, в тело подвала.
+   Проценты ниже — доли от ширины подвала, поэтому фигура и полоса под
+   вырез масштабируются вместе:
+     базовая линия  87.586 / 1922 = 4.557%
+     низ выреза    135.634 / 1922 = 7.0569%
+     глубина выреза 48.048 / 1922 = 2.4999%  */
 .footer {
   position: relative;
-  padding-block: clamp(28px, 3.85vw, 74px) clamp(28px, 2.86vw, 55px);
+  /* Полоса, в которую опускается вырез. Собственный фон подвала сюда не
+     заходит (background-clip: content-box) — иначе он закрасил бы вырез */
+  padding-top: 2.4999%;
+  padding-bottom: 0;
   color: #fff;
   background: var(--red);
+  background-clip: content-box;
 }
 
-/* всплеск кардиограммы на верхней кромке подвала */
+/* Отступы подвала переехали внутрь, т.к. падинги самого .footer теперь
+   отведены под вырез и вырезаны из фона */
+.footer > .container {
+  padding-block: clamp(28px, 3.85vw, 74px) clamp(28px, 2.86vw, 55px);
+}
+
 .footer::before {
   content: "";
   position: absolute;
   left: 0;
-  bottom: 100%;
+  top: 0;
   width: 100%;
-  padding-top: 4.5569%;
+  /* высота полосы = вся высота волны, от вершины всплеска до дна выреза */
+  padding-top: 7.0569%;
+  /* поднимаем так, чтобы базовая линия фигуры легла ровно на кромку */
+  margin-top: -4.557%;
   background: url("assets/rectangle17.svg") top left / 100% auto no-repeat;
 }
 
@@ -1143,6 +1171,48 @@ body.is-modal-open { overflow: hidden; }
   color: var(--red);
   white-space: nowrap;
 }
+
+/* У «выбрать время» нет суммы — центрируем надпись по высоте соседних плиток */
+.minutes__item--custom { justify-content: center; }
+.minutes__item--custom .minutes__count {
+  font-weight: 600;
+  color: var(--red);
+}
+
+/* Поле своего значения раскрывается под плитками */
+.custom-time {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 10px;
+  padding: 12px 16px;
+  font-family: var(--os);
+  background: #fdf1f0;
+  border-radius: 14px;
+}
+
+.custom-time__label {
+  font-size: 15px;
+  line-height: 1.3;
+  color: #3a3a3a;
+}
+
+.custom-time__input {
+  width: 96px;
+  padding: 6px 10px;
+  font-family: var(--os);
+  font-weight: 700;
+  font-size: 18px;
+  line-height: 1.2;
+  color: #3a3a3a;
+  text-align: center;
+  background: #fff;
+  border: 2px solid #e2d3d3;
+  border-radius: 10px;
+  transition: border-color .2s;
+}
+.custom-time__input:focus { border-color: var(--red); outline: none; }
 
 .modal__sum {
   display: flex;
