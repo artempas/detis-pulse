@@ -14,7 +14,8 @@
     pulseMin: 30,            // нижняя граница допустимого пульса
     pulseMax: 220,           // верхняя граница допустимого пульса
     minYear: 1900,
-    minuteOptions: [1, 2, 3, 5, 10],
+    minuteOptions: [1, 5, 10, 60],
+    customMinutesMax: 1440,  // сутки — верхняя граница для «выбрать время»
     countUpMs: 2000
   };
 
@@ -24,6 +25,7 @@
     pulse: null,     // ударов в минуту
     beats: null,     // ударов за жизнь
     minutes: 1,      // выбрано минут для пожертвования
+    customTime: false, // выбран режим «выбрать время», а не готовая плитка
     donated: false
   };
 
@@ -50,7 +52,20 @@
   }
 
   function beatsWord(n) { return plural(n, ['удар', 'удара', 'ударов']); }
-  function minutesWord(n) { return plural(n, ['минуту', 'минуты', 'минут']); }
+
+  /* Кратные 60 показываем в часах: 60 → «1 час», 120 → «2 часа».
+     Именительный падеж — для плитки варианта («1 минута»),
+     винительный — для надписи «Подарить …» («1 минуту»). */
+  function durationText(n, nominative) {
+    if (n >= 60 && n % 60 === 0) {
+      var h = n / 60;
+      return h + NBSP + plural(h, ['час', 'часа', 'часов']);
+    }
+    var forms = nominative
+      ? ['минута', 'минуты', 'минут']
+      : ['минуту', 'минуты', 'минут'];
+    return n + NBSP + plural(n, forms);
+  }
 
   function $(sel, root) { return (root || document).querySelector(sel); }
   function $$(sel, root) {
@@ -74,12 +89,16 @@
 
     var left = CONFIG.timerSeconds;
     var tick = null;
+    var ringEl = $('.step__ring-progress', display);
+    var valueEl = $('.step__ring-value', display);
+    var ringCircumference = ringEl ? 2 * Math.PI * ringEl.r.baseVal.value : 0;
 
     function render() {
-      var text = String(left).length < 2 ? '0' + left : String(left);
-      var cells = display.children;
-      cells[0].textContent = text.charAt(0);
-      cells[1].textContent = text.charAt(1);
+      if (valueEl) valueEl.textContent = String(left);
+      if (ringEl) {
+        var fraction = left / CONFIG.timerSeconds;
+        ringEl.style.strokeDashoffset = String(ringCircumference * (1 - fraction));
+      }
     }
 
     function stop() {
@@ -135,13 +154,40 @@
   /* Экран 2 — форма и валидация                                         */
   /* ------------------------------------------------------------------ */
 
-  /* Маска dd.mm.yyyy */
-  function maskDate(value) {
-    var d = value.replace(/\D/g, '').slice(0, 8);
-    var out = d.slice(0, 2);
-    if (d.length > 2) out += '.' + d.slice(2, 4);
-    if (d.length > 4) out += '.' + d.slice(4, 8);
-    return out;
+  /* Маска dd.mm.yyyy: подчёркивания стоят на месте ещё не введённых цифр,
+     сама маска — значение поля, а не placeholder, поэтому во время ввода
+     видно, что уже набрано: __.__.____ → 3_.__.____ → 31.__.____ ... */
+  var DATE_MASK = '__.__.____';
+  var DATE_DIGIT_POS = [0, 1, 3, 4, 6, 7, 8, 9]; /* позиции цифр в маске */
+
+  function buildMaskedDate(digits) {
+    var chars = DATE_MASK.split('');
+    for (var i = 0; i < DATE_DIGIT_POS.length; i++) {
+      chars[DATE_DIGIT_POS[i]] = digits[i] || '_';
+    }
+    return chars.join('');
+  }
+
+  /* Индекс цифрового слота, в который попадёт следующий ввод при курсоре pos */
+  function digitIndexAtCaret(pos) {
+    for (var i = 0; i < DATE_DIGIT_POS.length; i++) {
+      if (DATE_DIGIT_POS[i] >= pos) return i;
+    }
+    return DATE_DIGIT_POS.length;
+  }
+
+  /* Индекс последнего цифрового слота перед курсором pos (для backspace) */
+  function prevDigitIndexAtCaret(pos) {
+    var idx = -1;
+    for (var i = 0; i < DATE_DIGIT_POS.length; i++) {
+      if (DATE_DIGIT_POS[i] < pos) idx = i; else break;
+    }
+    return idx;
+  }
+
+  function digitsFromValue(value) {
+    var d = (value || '').replace(/\D/g, '').slice(0, 8);
+    return d.split('');
   }
 
   /* Разбор даты с проверкой существования (31.02.2000 → null) */
@@ -168,7 +214,7 @@
   function validateBirthday(input) {
     var value = input.value.trim();
     if (!value) return 'Укажите дату рождения';
-    if (value.length < 10) return 'Введите дату полностью в формате дд.мм.гггг';
+    if (value.indexOf('_') !== -1) return 'Введите дату полностью в формате дд.мм.гггг';
 
     var date = parseDate(value);
     if (!date) return 'Такой даты не существует. Формат: дд.мм.гггг';
@@ -200,6 +246,31 @@
     var native = $('#birthday-native');
     var pulse = $('#pulse');
 
+    /* Цифры уже введённой даты (0-8 символов), маска строится из них */
+    var birthdayDigits = digitsFromValue(birthday.value);
+
+    function renderBirthday(caretDigitIndex) {
+      birthday.value = buildMaskedDate(birthdayDigits);
+      var pos = caretDigitIndex >= DATE_DIGIT_POS.length
+        ? DATE_MASK.length
+        : DATE_DIGIT_POS[caretDigitIndex];
+      birthday.setSelectionRange(pos, pos);
+    }
+
+    function firstEmptyDigitIndex() {
+      for (var i = 0; i < 8; i++) {
+        if (!birthdayDigits[i]) return i;
+      }
+      return 8;
+    }
+
+    function hasAnyDigit() {
+      for (var i = 0; i < 8; i++) {
+        if (birthdayDigits[i]) return true;
+      }
+      return false;
+    }
+
     /* Ограничения нативного календаря */
     if (native) {
       var now = new Date();
@@ -210,23 +281,72 @@
         if (!native.value) return;
         var parts = native.value.split('-');
         birthday.value = parts[2] + '.' + parts[1] + '.' + parts[0];
+        birthdayDigits = digitsFromValue(birthday.value);
         setError(birthday, validateBirthday(birthday));
       });
     }
 
-    birthday.addEventListener('input', function () {
-      var pos = birthday.selectionStart;
-      var before = birthday.value;
-      birthday.value = maskDate(before);
-      /* курсор не «прыгает» в конец при правке внутри строки */
-      if (pos !== null && pos < before.length) {
-        birthday.setSelectionRange(pos, pos);
+    birthday.addEventListener('focus', function () {
+      renderBirthday(firstEmptyDigitIndex());
+    });
+
+    birthday.addEventListener('keydown', function (e) {
+      if (/^[0-9]$/.test(e.key)) {
+        e.preventDefault();
+        var idx = digitIndexAtCaret(birthday.selectionStart);
+        if (idx >= 8) return;
+        birthdayDigits[idx] = e.key;
+        renderBirthday(idx + 1);
+        if (birthday.getAttribute('aria-invalid') === 'true') {
+          setError(birthday, validateBirthday(birthday));
+        }
+        return;
       }
+      if (e.key === 'Backspace') {
+        e.preventDefault();
+        var selStart = birthday.selectionStart, selEnd = birthday.selectionEnd;
+        if (selEnd > selStart) {
+          var from = digitIndexAtCaret(selStart), to = prevDigitIndexAtCaret(selEnd);
+          for (var i = from; i <= to; i++) birthdayDigits[i] = '';
+          renderBirthday(from);
+        } else {
+          var prevIdx = prevDigitIndexAtCaret(selStart);
+          if (prevIdx < 0) return;
+          birthdayDigits[prevIdx] = '';
+          renderBirthday(prevIdx);
+        }
+        if (birthday.getAttribute('aria-invalid') === 'true') {
+          setError(birthday, validateBirthday(birthday));
+        }
+        return;
+      }
+      if (e.key === 'Delete') {
+        e.preventDefault();
+        var delIdx = digitIndexAtCaret(birthday.selectionStart);
+        if (delIdx >= 8) return;
+        birthdayDigits[delIdx] = '';
+        renderBirthday(delIdx);
+        if (birthday.getAttribute('aria-invalid') === 'true') {
+          setError(birthday, validateBirthday(birthday));
+        }
+      }
+    });
+
+    birthday.addEventListener('paste', function (e) {
+      e.preventDefault();
+      var text = (e.clipboardData || window.clipboardData).getData('text');
+      birthdayDigits = digitsFromValue(text);
+      while (birthdayDigits.length < 8) birthdayDigits.push('');
+      renderBirthday(Math.min(digitsFromValue(text).length, 8));
       if (birthday.getAttribute('aria-invalid') === 'true') {
         setError(birthday, validateBirthday(birthday));
       }
     });
+
     birthday.addEventListener('blur', function () {
+      if (!hasAnyDigit()) {
+        birthday.value = '';
+      }
       if (birthday.value) setError(birthday, validateBirthday(birthday));
     });
 
@@ -402,16 +522,19 @@
 
   function updateMinutesLabel() {
     var el = $('#donate-minutes');
-    if (el) el.textContent = state.minutes + ' ' + minutesWord(state.minutes);
+    if (el) el.textContent = durationText(state.minutes, false);
   }
 
-  /* Шаг ограничен списком вариантов — на краях кнопки гаснут */
+  /* Шаг ограничен списком вариантов — на краях кнопки гаснут.
+     Произвольное значение из «выбрать время» в список не попадает,
+     поэтому границы считаем по крайним вариантам, а не по индексу. */
   function updateSteppers() {
     var options = CONFIG.minuteOptions;
-    var i = options.indexOf(state.minutes);
     $$('[data-minutes-step]').forEach(function (btn) {
       var dir = Number(btn.dataset.minutesStep);
-      btn.disabled = dir < 0 ? i <= 0 : i >= options.length - 1;
+      btn.disabled = dir < 0
+        ? state.minutes <= options[0]
+        : state.minutes >= options[options.length - 1];
     });
   }
 
@@ -481,7 +604,10 @@
     var box = $('#minutes-options');
     if (!box) return;
 
-    /* Кнопки вариантов: 1 минута — 72 ₽, 2 минуты — 144 ₽, 3, 5, 10 минут */
+    var customInput = $('#custom-minutes');
+    var customWrap = $('#custom-time');
+
+    /* Готовые варианты: 1 минута, 5 минут, 10 минут, 1 час */
     CONFIG.minuteOptions.forEach(function (m) {
       var btn = document.createElement('button');
       btn.type = 'button';
@@ -490,47 +616,104 @@
       btn.setAttribute('role', 'radio');
       btn.setAttribute('aria-checked', 'false');
       btn.innerHTML =
-        '<span class="minutes__count">' + m + ' ' + minutesWord(m) + '</span>' +
+        '<span class="minutes__count">' + durationText(m, true) + '</span>' +
         '<span class="minutes__sum"></span>';
       box.appendChild(btn);
     });
 
+    /* Последняя плитка — «выбрать время»: раскрывает поле для своего значения */
+    var customBtn = document.createElement('button');
+    customBtn.type = 'button';
+    customBtn.className = 'minutes__item minutes__item--custom';
+    customBtn.dataset.custom = '';
+    customBtn.setAttribute('role', 'radio');
+    customBtn.setAttribute('aria-checked', 'false');
+    customBtn.setAttribute('aria-controls', 'custom-time');
+    customBtn.innerHTML = '<span class="minutes__count">Выбрать время</span>';
+    box.appendChild(customBtn);
+
     function renderOptions() {
       var pulse = state.pulse || 72;
-      $$('.minutes__item', box).forEach(function (btn) {
+      var custom = state.customTime;
+
+      $$('.minutes__item[data-minutes]', box).forEach(function (btn) {
         var m = +btn.dataset.minutes;
         btn.querySelector('.minutes__sum').textContent = formatNumber(m * pulse) + NBSP + '₽';
-        var active = m === state.minutes;
+        var active = !custom && m === state.minutes;
         btn.classList.toggle('is-active', active);
         btn.setAttribute('aria-checked', active ? 'true' : 'false');
       });
+
+      customBtn.classList.toggle('is-active', custom);
+      customBtn.setAttribute('aria-checked', custom ? 'true' : 'false');
+      customBtn.setAttribute('aria-expanded', custom ? 'true' : 'false');
+      if (customWrap) customWrap.hidden = !custom;
+      if (custom && customInput && +customInput.value !== state.minutes) {
+        customInput.value = state.minutes;
+      }
+
       $('#modal-pulse').textContent = pulse;
       $('#modal-rate').textContent = formatNumber(pulse) + NBSP + '₽';
       /* Сумма = количество минут × пульс пользователя */
       $('#donate-sum').textContent = formatNumber(state.minutes * pulse) + NBSP + '₽';
     }
 
+    function setMinutes(m, custom) {
+      state.minutes = m;
+      state.customTime = !!custom;
+      updateMinutesLabel();
+      renderOptions();
+      updateSteppers();
+    }
+
     box.addEventListener('click', function (e) {
       var btn = e.target.closest('.minutes__item');
       if (!btn) return;
-      state.minutes = +btn.dataset.minutes;
-      updateMinutesLabel();
-      renderOptions();
+
+      if (btn === customBtn) {
+        if (!state.customTime) {
+          setMinutes(customInput ? Math.max(1, Math.round(+customInput.value) || 1) : 1, true);
+        }
+        if (customInput) customInput.focus();
+        return;
+      }
+      setMinutes(+btn.dataset.minutes, false);
     });
 
-    /* «−» и «+» только меняют количество минут, не открывая поп-ап */
+    if (customInput) {
+      customInput.max = CONFIG.customMinutesMax;
+      customInput.addEventListener('input', function () {
+        var m = Math.round(+customInput.value);
+        if (!isFinite(m) || m < 1) return;
+        setMinutes(Math.min(m, CONFIG.customMinutesMax), true);
+      });
+      /* На blur возвращаем корректное значение, если поле пустое или обрезано */
+      customInput.addEventListener('blur', function () {
+        customInput.value = state.minutes;
+      });
+    }
+
+    /* «−» и «+» только меняют количество минут, не открывая поп-ап.
+       Для произвольного значения шагаем к ближайшему готовому варианту. */
     document.addEventListener('click', function (e) {
       var step = e.target.closest('[data-minutes-step]');
       if (!step) return;
 
       var options = CONFIG.minuteOptions;
+      var dir = Number(step.dataset.minutesStep);
       var i = options.indexOf(state.minutes);
-      if (i === -1) i = 0;
-      i = Math.max(0, Math.min(options.length - 1, i + Number(step.dataset.minutesStep)));
-      state.minutes = options[i];
-      updateMinutesLabel();
-      renderOptions();
-      updateSteppers();
+
+      if (i === -1) {
+        /* Ближайший вариант в нужную сторону */
+        var next = dir < 0
+          ? options.filter(function (m) { return m < state.minutes; }).pop()
+          : options.filter(function (m) { return m > state.minutes; })[0];
+        setMinutes(next === undefined ? state.minutes : next);
+        return;
+      }
+
+      i = Math.max(0, Math.min(options.length - 1, i + dir));
+      setMinutes(options[i]);
     });
 
     /* Поп-ап открывается по центральной надписи «Подарить N минут…» */
@@ -797,42 +980,46 @@
   })();
 
   /* ------------------------------------------------------------------ */
-  /* Карусель фактов: стрелки, точки, свайп                              */
+  /* Карусель фактов: стрелки, свайп                                      */
   /* ------------------------------------------------------------------ */
   (function initFacts() {
     var track = $('#facts-track');
-    var dotsBox = $('#facts-dots');
-    if (!track || !dotsBox) return;
+    if (!track) return;
 
     var cards = Array.prototype.slice.call(track.children);
-    var dots = $$('button', dotsBox);
     var prev = $('.nav-btn--prev');
     var next = $('.nav-btn--next');
     var current = 0;
 
-    function step() {
-      if (cards.length < 2) return track.clientWidth;
-      return cards[1].offsetLeft - cards[0].offsetLeft;
+    /* Целевой scrollLeft для карточки — по её реальному offsetLeft, а не
+       умножением условного «шага»: так не накапливается субпиксельная
+       погрешность и последняя карточка не улетает за реальный предел скролла. */
+    function targetFor(index) {
+      var max = track.scrollWidth - track.clientWidth;
+      var raw = cards[index].offsetLeft - cards[0].offsetLeft;
+      return Math.max(0, Math.min(max, raw));
     }
 
     function setCurrent(index) {
       current = index;
-      dots.forEach(function (dot, i) {
-        dot.setAttribute('aria-current', i === index ? 'true' : 'false');
-      });
       if (prev) prev.disabled = index === 0;
       if (next) next.disabled = index === cards.length - 1;
     }
 
     function goTo(index) {
       index = Math.max(0, Math.min(cards.length - 1, index));
-      track.scrollTo({ left: index * step(), behavior: reduceMotion ? 'auto' : 'smooth' });
+      track.scrollTo({ left: targetFor(index), behavior: reduceMotion ? 'auto' : 'smooth' });
       setCurrent(index);
     }
 
     function sync() {
-      var index = Math.round(track.scrollLeft / step());
-      index = Math.max(0, Math.min(cards.length - 1, index));
+      var pos = track.scrollLeft;
+      var index = 0;
+      var minDist = Infinity;
+      cards.forEach(function (card, i) {
+        var dist = Math.abs(targetFor(i) - pos);
+        if (dist < minDist) { minDist = dist; index = i; }
+      });
       if (index !== current) setCurrent(index);
     }
 
@@ -843,20 +1030,19 @@
       });
     });
 
-    dots.forEach(function (dot, i) {
-      dot.addEventListener('click', function () { goTo(i); });
-    });
-
     /* Стрелки клавиатуры внутри карусели */
     track.addEventListener('keydown', function (e) {
       if (e.key === 'ArrowRight') { goTo(current + 1); e.preventDefault(); }
       if (e.key === 'ArrowLeft') { goTo(current - 1); e.preventDefault(); }
     });
 
-    var raf;
+    /* Синк — только после того как скролл реально остановился: если дёргать
+       его на каждом кадре скролла (в т.ч. во время анимированного goTo),
+       current мелькает через промежуточные карточки, дёргая disabled у стрелок. */
+    var syncTimer;
     track.addEventListener('scroll', function () {
-      cancelAnimationFrame(raf);
-      raf = requestAnimationFrame(sync);
+      clearTimeout(syncTimer);
+      syncTimer = setTimeout(sync, 120);
     }, { passive: true });
 
     setCurrent(0);
@@ -875,7 +1061,7 @@
     if (!slot) return;
     slot.hidden = false;
     slot.innerHTML = '<p>Здесь будет платежная форма: ' +
-      minutes + ' ' + minutesWord(minutes) + ' — ' + formatNumber(amount) + NBSP + '₽.</p>';
+      durationText(minutes, true) + ' — ' + formatNumber(amount) + NBSP + '₽.</p>';
   }
 
   /* Публичный API для платежного модуля */

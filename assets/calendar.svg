@@ -1,0 +1,9 @@
+<svg preserveAspectRatio="none" overflow="visible" style="display: block;" width="59.267" height="59.267" viewBox="0 0 59.267 59.267" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g id="Calendar">
+<path id="Body" d="M8.567 13.858H50.7V52.567C50.7 53.947 49.58 55.067 48.2 55.067H11.067C9.687 55.067 8.567 53.947 8.567 52.567V13.858Z" stroke="black" stroke-width="1.94318" stroke-linecap="round" stroke-linejoin="round"/>
+<path id="Top" d="M8.567 13.858V11.358C8.567 9.978 9.687 8.858 11.067 8.858H48.2C49.58 8.858 50.7 9.978 50.7 11.358V13.858H8.567Z" stroke="black" stroke-width="1.94318" stroke-linecap="round" stroke-linejoin="round"/>
+<path id="HangerLeft" d="M18.7 4.858V13.858" stroke="black" stroke-width="1.94318" stroke-linecap="round" stroke-linejoin="round"/>
+<path id="HangerRight" d="M40.567 4.858V13.858" stroke="black" stroke-width="1.94318" stroke-linecap="round" stroke-linejoin="round"/>
+<path id="Divider" d="M8.567 22.858H50.7" stroke="black" stroke-width="1.94318" stroke-linecap="round" stroke-linejoin="round"/>
+</g>
+</svg>

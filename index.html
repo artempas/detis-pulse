@@ -31,8 +31,8 @@
   <section class="hero container" id="about">
     <h1 class="hero__title"><img src="assets/group23.svg" alt="#пульсуй"></h1>
     <p class="hero__lead">Ко <span class="accent">Всемирному Дню сердца</span><img class="hero__heart" src="assets/vector66.svg" alt="" aria-hidden="true"><br class="br-lg">
-      фонд «Детские сердца» запускает традиционный флешмоб
-      <a class="accent" href="https://vk.ru/feed?q=%23%D0%9F%D1%83%D0%BB%D1%8C%D1%81%D1%83%D0%B9&amp;section=search" target="_blank" rel="noopener">#пульсуй</a><br class="br-lg">
+      благотворительный фонд «Детские сердца» запускает традиционный флешмоб
+      <a class="accent" href="https://vk.ru/feed?q=%23%D0%9F%D1%83%D0%BB%D1%8C%D1%81%D1%83%D0%B9&amp;section=search" target="_blank" rel="noopener">#пульсуй</a>
       в поддержку детей с пороками сердца.</p>
     <p class="hero__sub">Сердце совершает миллиарды ударов за жизнь.<br class="br-lg">
       Узнайте свое число за минуту</p>
@@ -71,8 +71,12 @@
       </li>
       <li class="step step--timer">
         <div class="step__head"><span class="step__num">4</span></div>
-        <p class="step__count" id="timer-display" role="timer" aria-live="off">
-          <span>6</span><span>0</span>
+        <p class="step__ring" id="timer-display" role="timer" aria-live="off">
+          <svg class="step__ring-svg" viewBox="0 0 120 120" aria-hidden="true">
+            <circle class="step__ring-track" cx="60" cy="60" r="50"></circle>
+            <circle class="step__ring-progress" cx="60" cy="60" r="50"></circle>
+          </svg>
+          <span class="step__ring-value">60</span>
         </p>
         <button class="btn" type="button" id="timer-btn" data-state="idle">Начать отсчет минуты</button>
         <button class="link-btn step__reset" type="button" id="timer-reset" hidden>Начать заново</button>
@@ -90,14 +94,13 @@
                  inputmode="numeric" autocomplete="bday" maxlength="10"
                  aria-describedby="birthday-hint birthday-error" required>
           <span class="field__picker">
-            <img src="assets/group.svg" alt="" aria-hidden="true">
+            <img src="assets/calendar.svg" alt="" aria-hidden="true">
             <!-- Нативный календарь: прозрачный input поверх иконки —
                  работает во всех мобильных браузерах без showPicker() -->
             <input class="field__native" type="date" id="birthday-native"
                    tabindex="-1" aria-label="Выбрать дату рождения в календаре">
           </span>
         </div>
-        <p class="field__hint" id="birthday-hint">В формате дд.мм.гггг или через календарь</p>
         <p class="field__error" id="birthday-error" role="alert"></p>
       </div>
 
@@ -109,7 +112,6 @@
                  inputmode="numeric" maxlength="3"
                  aria-describedby="pulse-error pulse-hint" required>
         </div>
-        <p class="field__hint" id="pulse-hint">Ударов в минуту, от 30 до 220</p>
         <p class="field__error" id="pulse-error" role="alert"></p>
       </div>
 
@@ -131,7 +133,7 @@
   <!-- ===== Кому нужна помощь ===== -->
   <section class="fact container">
     <div class="fact__pic pic"><img src="assets/image2.png" alt="Девочка держит в руках сердце"></div>
-    <p class="fact__text">Не каждое сердце бьется стабильно. 1 из 100 детей рождается с пороком сердца</p>
+    <p class="fact__text">Не каждое сердце бьется стабильно.<br>1 из 100 детей рождается с пороком сердца</p>
   </section>
 
   <!-- ===== Пожертвование ===== -->
@@ -150,11 +152,11 @@
       <button class="donate__btn" type="button" data-minutes-step="-1" aria-label="Уменьшить количество минут">
         <img src="assets/group18.svg" alt="" aria-hidden="true">
       </button>
-      <button class="donate__label" type="button" data-open-donate>
-        Подарить <span id="donate-minutes">1 минуту</span> другому сердцу
+      <button class="btn donate__label" type="button" data-open-donate>
+        Подарить <span id="donate-minutes">1 минуту</span> другому&nbsp;сердцу
       </button>
       <button class="donate__btn" type="button" data-minutes-step="1" aria-label="Увеличить количество минут">
-        <img src="assets/group17.svg" alt="" aria-hidden="true">
+        <img src="assets/group19.svg" alt="" aria-hidden="true">
       </button>
     </div>
   </section>
@@ -230,13 +232,6 @@
       <button class="nav-btn nav-btn--prev" type="button" aria-label="Предыдущий факт" data-dir="-1">
         <img src="assets/arrow2.svg" alt="" aria-hidden="true">
       </button>
-      <ol class="dots" id="facts-dots">
-        <li><button type="button" aria-label="Факт 1" aria-current="true"></button></li>
-        <li><button type="button" aria-label="Факт 2"></button></li>
-        <li><button type="button" aria-label="Факт 3"></button></li>
-        <li><button type="button" aria-label="Факт 4"></button></li>
-        <li><button type="button" aria-label="Факт 5"></button></li>
-      </ol>
       <button class="nav-btn nav-btn--next" type="button" aria-label="Следующий факт" data-dir="1">
         <img src="assets/arrow1.svg" alt="" aria-hidden="true">
       </button>
@@ -303,8 +298,15 @@
     <p class="modal__lead">Ваш пульс — <b id="modal-pulse">72</b> удара в минуту.
       Одна минута вашего сердца — <b id="modal-rate">72 ₽</b> для ребенка с пороком сердца.</p>
 
-    <div class="minutes" id="minutes-options" role="radiogroup" aria-label="Сколько минут подарить">
-      <!-- Кнопки вариантов подставляются скриптом: 1, 2, 3, 5, 10 минут -->
+    <div class="minutes" id="minutes-options" role="radiogroup" aria-label="Сколько времени подарить">
+      <!-- Кнопки вариантов подставляются скриптом:
+           1 минута, 5 минут, 10 минут, 1 час и «выбрать время» -->
+    </div>
+
+    <div class="custom-time" id="custom-time" hidden>
+      <label class="custom-time__label" for="custom-minutes">Сколько минут подарить</label>
+      <input class="custom-time__input" id="custom-minutes" type="number"
+             inputmode="numeric" min="1" step="1" value="15">
     </div>
 
     <p class="modal__sum">
