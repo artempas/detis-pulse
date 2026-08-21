@@ -498,6 +498,16 @@ button {
   line-height: 1;
 }
 
+/* Толчок в такт удару (см. beat() в script.js) применяется только к самой
+   цифре, не к звёздочке. inline-block нужен, чтобы transform вообще
+   применялся — на inline-элементах он игнорируется браузером.
+   Точка опоры — правый верхний угол, вплотную к звёздочке: цифра растёт
+   влево и вниз, от звёздочки, а не в её сторону */
+.counter__value {
+  display: inline-block;
+  transform-origin: 100% 0;
+}
+
 .counter__caption {
   font-weight: 700;
   font-size: var(--fs-h2);

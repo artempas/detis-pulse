@@ -445,10 +445,13 @@
 
   /* Короткий «толчок» числа в такт удару.
      Длительность фиксированная, а не доля периода: на высоком пульсе
-     растянутый толчок сливался бы в непрерывное дрожание. */
+     растянутый толчок сливался бы в непрерывное дрожание.
+     Толкается только сама цифра (.counter__value), не звёздочка —
+     иначе на пике толчка звёздочка тоже подрастала бы и «прыгала». */
   function beat(el, duration) {
     if (reduceMotion || !el || !el.animate) return;
-    el.animate([
+    var box = el.querySelector('.counter__value') || el;
+    box.animate([
       { transform: 'scale(1)' },
       { transform: 'scale(1.02)', offset: 0.35 },
       { transform: 'scale(1)' }
