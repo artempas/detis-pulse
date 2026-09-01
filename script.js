@@ -539,18 +539,13 @@
     });
   });
 
-  /* Кнопка «Помочь» в шапке: пока расчёт не сделан, блока пожертвования
-     ещё нет — ведём пользователя к форме замера пульса */
+  /* Кнопка «Помочь» в шапке открывает поп-ап с платёжной формой фонда */
   (function initHeaderHelp() {
     var link = $('.header__help');
     if (!link) return;
     link.addEventListener('click', function (e) {
-      var donate = $('#donate');
-      if (!donate || !donate.hidden) return;
       e.preventDefault();
-      scrollToEl($('#measure'));
-      var birthday = $('#birthday');
-      if (birthday) birthday.focus({ preventScroll: true });
+      openModal('help-modal');
     });
   })();
 

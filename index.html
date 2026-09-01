@@ -317,7 +317,7 @@
           </button>
           <button class="btn donate__label" type="button" data-open-donate>
             Подарить
-            <span id="donate-minutes">1 минуту</span> другому&nbsp;сердцу
+            <span id="donate-minutes">1 минуту</span> детскому&nbsp;сердцу
           </button>
           <button
             class="donate__btn"
@@ -891,6 +891,32 @@
         <p class="modal__note">
           Оплата проходит на защищённой форме MixPlat.
         </p>
+      </div>
+    </div>
+
+    <!-- ===== Поп-ап «Помочь» — платёжная форма фонда ===== -->
+    <div class="modal" id="help-modal" hidden>
+      <div class="modal__overlay" data-close-modal></div>
+      <div
+        class="modal__dialog modal__dialog--help"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="help-modal-title"
+      >
+        <button
+          class="modal__close"
+          type="button"
+          data-close-modal
+          aria-label="Закрыть"
+        >
+          &times;
+        </button>
+        <p class="modal__title" id="help-modal-title">Помочь фонду</p>
+        <mixplat-form
+          id="eb375265-beff-4322-8814-6edfc87360aa"
+          data-type="mixplat-form"
+          data-tid="18238"
+        ></mixplat-form>
       </div>
     </div>
 
