@@ -1,0 +1,11 @@
+# Образец. Рабочий robots.txt должен лежать в КОРНЕ домена: https://detis.ru/robots.txt
+# (файл в папке /puls/ поисковиками не используется). См. README-seo.md, пункт B1.
+#
+# В существующий https://detis.ru/robots.txt нужно:
+#   1) убедиться, что папка /puls/ не закрыта правилом Disallow;
+#   2) добавить ссылку на карту сайта акции.
+
+User-agent: *
+Allow: /
+
+Sitemap: https://detis.ru/puls/sitemap.xml
