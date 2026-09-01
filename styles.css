@@ -745,7 +745,7 @@ button {
 .card__title {
   position: relative;
   margin: 0;
-  font-family: var(--inter);
+  font-family: var(--intro);
   font-weight: 700;
   font-size: calc(var(--card-w) * .053);
   line-height: 1;
