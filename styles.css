@@ -1654,7 +1654,7 @@ body.is-modal-open { overflow: hidden; }
 
 .modal__sum {
   display: flex;
-  align-items: baseline;
+  align-items: center;
   justify-content: space-between;
   gap: 12px;
   margin-top: clamp(18px, 2.2vw, 26px);
