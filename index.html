@@ -15,6 +15,8 @@
       rel="stylesheet"
     />
     <link rel="stylesheet" href="styles.css" />
+    <script async src="https://cdn.mixplat.ru/widget/v3/widget.js"></script>
+    <script src="https://widgets.donation.ru/wloader/2c202b1d-9f3a-443c-ae65-06a1cbe11c02/wloader.js" async></script>
   </head>
   <body>
     <header class="header">
@@ -280,7 +282,8 @@
 
       <!-- ===== Пожертвование ===== -->
       <section class="result container is-locked" id="donate" hidden>
-        <div class="progress">
+        <div id='d3a18150-a6cb-4ad5-b962-4424a75c778f' data-type='mixplat-stat'></div>
+        <!-- <div class="progress">
           <div class="progress__track">
             <div
               class="progress__bar"
@@ -293,7 +296,7 @@
               <span>Собрано <b>128 541 ₽</b></span>
             </div>
           </div>
-        </div>
+        </div> -->
 
         <p class="result__pulse">
           Ваш пульс — <span id="donate-pulse">72 удара</span> в минуту
@@ -597,10 +600,10 @@
               <div
                 class="card__deco"
                 style="
-                  left: -2.805%;
-                  top: 69.911%;
-                  width: 55.452%;
-                  height: 11.914%;
+                  left: 0.076%;
+                  top: 68.824%;
+                  width: 52.929%;
+                  height: 13.411%;
                 "
               >
                 <img src="assets/vector22.svg" alt="" />
@@ -608,10 +611,10 @@
               <div
                 class="card__deco"
                 style="
-                  left: 52.341%;
-                  top: 57.216%;
-                  width: 50.078%;
-                  height: 27.475%;
+                  left: 52.45%;
+                  top: 57.45%;
+                  width: 47.59%;
+                  height: 27.64%;
                 "
               >
                 <img src="assets/vector23.svg" alt="" />
@@ -875,17 +878,14 @@
           <b id="donate-sum">72 ₽</b>
         </p>
 
-        <!-- Место под платежную форму. Подключается платежный сервис фонда. -->
+        <!-- Сообщения платёжной формы MixPlat (ошибки/статусы) -->
         <div class="pay-slot" id="pay-slot" hidden></div>
 
-        <button class="btn btn--wide" type="button" id="donate-submit">
+        <button class="btn btn--wide" type="button" id="mixplat_widget">
           Подарить
         </button>
         <p class="modal__note">
-          Платежная форма будет подключена позже.
-          <button class="link-btn" type="button" id="demo-success">
-            Показать экран благодарности (демо)
-          </button>
+          Оплата проходит на защищённой форме MixPlat.
         </p>
       </div>
     </div>

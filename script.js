@@ -2,7 +2,7 @@
    Реализовано по ТЗ: отсчёт минуты, форма с валидацией, расчёт ударов,
    анимированный результат, share-карточки, поп-ап пожертвования,
    карусель фактов, экран благодарности.
-   Платёжный сценарий не реализован — см. блок PAYMENT в конце файла. */
+   Платёжный сценарий — модальный виджет MixPlat, см. блок PAYMENT в конце файла. */
 (function () {
   'use strict';
 
@@ -16,7 +16,9 @@
     minYear: 1900,
     minuteOptions: [1, 5, 10, 60],
     customMinutesMax: 1440,  // сутки — верхняя граница для «выбрать время»
-    countUpMs: 2000
+    countUpMs: 2000,
+    // Открытый ключ платёжного виджета MixPlat (docs.mixplat.ru/widget-options)
+    widgetKey: '38f83268-6f47-4546-adee-23cc012bf9cc'
   };
 
   /* Состояние пользователя */
@@ -711,19 +713,9 @@
       openModal('donate-modal');
     });
 
-    $('#donate-submit').addEventListener('click', function () {
-      /* PAYMENT: здесь будет вызов платежной формы сервиса фонда. */
+    $('#mixplat_widget').addEventListener('click', function () {
       startPayment(state.minutes, state.minutes * (state.pulse || 72));
     });
-
-    /* Демонстрация экрана благодарности, пока платежная форма не подключена */
-    var demo = $('#demo-success');
-    if (demo) {
-      demo.addEventListener('click', function () {
-        closeModal($('#donate-modal'));
-        onPaymentSuccess();
-      });
-    }
 
     renderOptions();
   })();
@@ -1119,19 +1111,49 @@
   })();
 
   /* ------------------------------------------------------------------ */
-  /* PAYMENT — платежный сценарий (подключается позже)                   */
+  /* PAYMENT — платежный сценарий (виджет MixPlat)                       */
   /* ------------------------------------------------------------------ */
 
-  /* Точка интеграции с платежным сервисом фонда.
-     Сейчас форма оплаты не подключена: показываем заглушку.
-     После подключения здесь инициализируется виджет в контейнер #pay-slot,
-     а по колбэку успешной оплаты вызывается Pulse.onPaymentSuccess(). */
-  function startPayment(minutes, amount) {
+  /* Открывает модальную платёжную форму MixPlat.
+     docs.mixplat.ru/widget-options — «Модальная версия».
+     amount приходит в рублях, MixPlat принимает сумму в копейках.
+     По колбэку успешной оплаты закрываем поп-ап и вызываем onPaymentSuccess(). */
+  function payError(text) {
     var slot = $('#pay-slot');
     if (!slot) return;
     slot.hidden = false;
-    slot.innerHTML = '<p>Здесь будет платежная форма: ' +
-      durationText(minutes, true) + ' — ' + formatNumber(amount) + NBSP + '₽.</p>';
+    slot.textContent = text;
+  }
+
+  function startPayment(minutes, amount) {
+    if (typeof Mixplat !== 'function') {
+      /* widget.js (async) ещё не загрузился */
+      payError('Платёжная форма загружается — попробуйте ещё раз через секунду.');
+      return;
+    }
+
+    var rubles = Math.max(1, Math.round(amount));
+
+    var options = {
+      widget_key: CONFIG.widgetKey,
+      // amount: rubles * 100,               // сумма в копейках, от 100 (1 ₽)
+      amount: 100,               // сумма в копейках, от 100 (1 ₽)
+      description: 'Пожертвование: ' + durationText(minutes, true) + ' ритма сердца',
+      payment_method: null,               // все доступные способы оплаты
+      mixplat_user_fundraising_program_id: 18238
+    };
+
+    var M = new Mixplat(options);
+    M.build();
+
+    M.setSuccessCallback(function () {
+      var modal = $('#donate-modal');
+      if (modal) closeModal(modal);
+      onPaymentSuccess();
+    });
+    M.setFailCallback(function () {
+      payError('Платёж не прошёл. Попробуйте ещё раз или выберите другой способ оплаты.');
+    });
   }
 
   /* Публичный API для платежного модуля */
