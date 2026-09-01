@@ -979,6 +979,19 @@
     var next = $('.nav-btn--next');
     var current = 0;
 
+    /* Точки-индикаторы: по одной на карточку, поэтому строим их из самих
+       карточек, а не держим фиксированный список в разметке */
+    var dotsBox = $('#facts-dots');
+    var dots = cards.map(function (card, i) {
+      var dot = document.createElement('button');
+      dot.type = 'button';
+      dot.className = 'facts__dot';
+      dot.setAttribute('aria-label', 'Факт ' + (i + 1));
+      dot.addEventListener('click', function () { goTo(i); });
+      if (dotsBox) dotsBox.appendChild(dot);
+      return dot;
+    });
+
     /* Целевой scrollLeft для карточки — по её реальному offsetLeft, а не
        умножением условного «шага»: так не накапливается субпиксельная
        погрешность и последняя карточка не улетает за реальный предел скролла. */
@@ -992,6 +1005,10 @@
       current = index;
       if (prev) prev.disabled = index === 0;
       if (next) next.disabled = index === cards.length - 1;
+      dots.forEach(function (dot, i) {
+        dot.classList.toggle('is-active', i === index);
+        dot.setAttribute('aria-current', i === index ? 'true' : 'false');
+      });
     }
 
     function goTo(index) {

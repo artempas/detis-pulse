@@ -77,6 +77,8 @@
             <circle class="step__ring-progress" cx="60" cy="60" r="50"></circle>
           </svg>
           <span class="step__ring-value">60</span>
+          <!-- Единица измерения рядом с числом — только в мобильном макете -->
+          <span class="step__ring-unit">секунд</span>
         </p>
         <button class="btn" type="button" id="timer-btn" data-state="idle">Начать отсчет минуты</button>
         <button class="link-btn step__reset" type="button" id="timer-reset" hidden>Начать заново</button>
@@ -133,7 +135,7 @@
   <!-- ===== Кому нужна помощь ===== -->
   <section class="fact container">
     <div class="fact__pic pic"><img src="assets/image2.png" alt="Девочка держит в руках сердце"></div>
-    <p class="fact__text">Не каждое сердце бьется стабильно.<br>1 из 100 детей рождается с пороком сердца</p>
+    <p class="fact__text">Не каждое сердце бьется стабильно. <br class="br-lg">1 из 100 детей рождается с пороком сердца</p>
   </section>
 
   <!-- ===== Пожертвование ===== -->
@@ -232,6 +234,8 @@
       <button class="nav-btn nav-btn--prev" type="button" aria-label="Предыдущий факт" data-dir="-1">
         <img src="assets/arrow2.svg" alt="" aria-hidden="true">
       </button>
+      <!-- Точки-индикаторы (мобильный макет): кнопки подставляются скриптом -->
+      <div class="facts__dots" id="facts-dots"></div>
       <button class="nav-btn nav-btn--next" type="button" aria-label="Следующий факт" data-dir="1">
         <img src="assets/arrow1.svg" alt="" aria-hidden="true">
       </button>
@@ -277,7 +281,7 @@
 <footer class="footer">
   <div class="container">
     <p class="footer__lead">24 года благотворительный фонд Детские сердца помогает детям с пороками сердца.<br>
-      Благодаря поддержке неравнодушных людей <strong>5 242 детей стали здоровыми!</strong></p>
+      Благодаря поддержке неравнодушных людей <strong>5&nbsp;242 детей стали здоровыми!</strong></p>
     <p class="footer__lead">Мы оказываем помощь детям, чьи семьи не могут оплатить лечение самостоятельно.
       На пожертвования от дарителей фонд приобретает индивидуальные расходные материалы для операций,
       оплачивает генетические исследования, помогает с оплатой дорогостоящего лечения,

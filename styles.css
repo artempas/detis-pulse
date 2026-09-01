@@ -41,6 +41,12 @@
   --gutter: clamp(16px, 4.16vw, 80px);
   --content: 1760px;
 
+  /* Единица мобильного макета: 1px макета (эталон — 390px) в реальных px.
+     Размеры мобильной вёрстки пишутся как calc(N * var(--px)), поэтому на
+     390px они попадают в макет один в один, ниже — пропорционально сжимаются,
+     а выше 430px перестают расти. Вне мобильного брейкпоинта --px = 1px. */
+  --px: 1px;
+
   --intro: Intro, Inter, system-ui, sans-serif;
   --os: "Open Sans", system-ui, sans-serif;
   --inter: Inter, system-ui, sans-serif;
@@ -313,6 +319,10 @@ button {
   line-height: 1;
   color: var(--red);
 }
+
+/* Подпись «секунд» рядом с числом есть только в мобильном макете —
+   на десктопе число живёт внутри кольца, места под неё нет */
+.step__ring-unit { display: none; }
 
 .btn {
   display: inline-flex;
@@ -793,6 +803,19 @@ button {
 .nav-btn--next { background: var(--red); }
 .nav-btn[disabled] { cursor: default; }
 
+/* Точки-индикаторы: только в мобильном макете, на десктопе достаточно стрелок */
+.facts__dots { display: none; }
+
+.facts__dot {
+  width: calc(7 * var(--px));
+  height: calc(7 * var(--px));
+  padding: 0;
+  background: #f0c5c2;
+  border-radius: 50%;
+  transition: background-color .2s;
+}
+.facts__dot.is-active { background: var(--red); }
+
 /* Декор возле пагинации */
 .facts__heart,
 .facts__girl {
@@ -1022,47 +1045,443 @@ button {
   }
 }
 
+/* ================================================================== */
+/* Мобильный макет (Figma, эталон 390 × 4098)                          */
+/* Все размеры — calc(N * var(--px)), где N — число из макета.          */
+/* Кегли, которые в макете уже на пределе читаемости (12px и мельче),   */
+/* заданы фиксированно, чтобы не уезжать вниз на узких экранах.         */
+/* ================================================================== */
 @media (max-width: 640px) {
-  :root { --fs-lead: clamp(17px, 4.6vw, 24px); }
+  :root {
+    --px: calc(min(100vw, 430px) / 390);
+    --gutter: calc(24 * var(--px));
+    --fs-lead: calc(20 * var(--px));
+  }
 
   .br-lg { display: none; }
 
-  .steps__list { grid-template-columns: minmax(0, 1fr); }
-  .step__pic { min-height: 0; }
-  .step__figure { width: min(70%, 230px) !important; }
+  /* ---------- Шапка ---------- */
+  /* У шапки поля уже, чем у остального контента: 16px против 24px */
+  .header {
+    --gutter: calc(16 * var(--px));
+    padding-block: calc(15 * var(--px)) 0;
+  }
+  .header__logo img { width: calc(140 * var(--px)); }
 
-  .header__help span { display: none; }
+  .header__help { gap: calc(20 * var(--px)); }
+  .header__help span {
+    display: inline;
+    font-family: var(--os);
+    font-size: calc(14 * var(--px));
+  }
+  .header__help img { width: calc(36 * var(--px)); }
 
+  /* Кардиограмма встаёт в поток: отрицательный margin поднимает её так,
+     чтобы горизонтальная линия фигуры (64.75% её высоты) легла на кромку
+     шапки. Растягиваем по высоте — в SVG стоит preserveAspectRatio="none" */
+  .header__pulse {
+    position: static;
+    width: 102%;
+    height: calc(48 * var(--px));
+    margin-left: -1%;
+    margin-top: calc(-18 * var(--px));
+    transform: none;
+  }
+
+  /* ---------- Первый экран ---------- */
+  .hero { margin-top: calc(20 * var(--px)); }
+  .hero__title { width: calc(290 * var(--px)); margin-inline: 0; }
+  .hero__lead {
+    margin-top: calc(28 * var(--px));
+    line-height: 1.2;
+  }
+  .hero__heart { width: calc(21 * var(--px)); }
+  .hero__sub {
+    margin-top: calc(48 * var(--px));
+    line-height: 1.2;
+    text-align: left;
+  }
+
+  /* ---------- Шаги: каждый шаг — отдельная карточка ---------- */
+  .steps { margin-top: calc(44 * var(--px)); }
+
+  .steps__list {
+    grid-template-columns: minmax(0, 1fr);
+    gap: calc(12 * var(--px));
+  }
+
+  /* Колонки карточки: бейдж | иллюстрация | текст.
+     Первая строка нужна только третьему шагу (часы и «60 секунд» над
+     иллюстрацией); у остальных она схлопывается в ноль, и иллюстрация
+     центрируется по всей высоте карточки, как в макете. */
+  .step {
+    display: grid;
+    grid-template-columns: calc(45 * var(--px)) calc(112 * var(--px)) minmax(0, 1fr);
+    grid-template-rows: auto auto;
+    align-items: center;
+    gap: 0;
+    min-height: calc(109 * var(--px));
+    padding: calc(5 * var(--px)) calc(16 * var(--px)) calc(12 * var(--px)) calc(5 * var(--px));
+    background: #fff;
+    border: 1px solid #f0eeed;
+    border-radius: calc(16 * var(--px));
+  }
+
+  /* .step__head — не бокс, а «прозрачная» обёртка: её дети становятся
+     ячейками сетки самой карточки */
+  .step__head { display: contents; }
+
+  .step__num {
+    grid-area: 1 / 1 / 3 / 2;
+    align-self: start;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: calc(32 * var(--px));
+    height: calc(32 * var(--px));
+    font-family: var(--os);
+    font-weight: 700;
+    font-size: calc(16 * var(--px));
+    line-height: 1;
+    color: var(--red);
+    background: #fbecef;
+    border-radius: 50%;
+  }
+
+  /* Часы и подпись делят одну ячейку сетки, разойдясь по её краям */
+  .step__clock {
+    grid-area: 1 / 2 / 2 / 3;
+    justify-self: start;
+    width: calc(28 * var(--px));
+    margin-left: calc(28 * var(--px));
+  }
+  .step__hint {
+    grid-area: 1 / 2 / 2 / 3;
+    justify-self: end;
+    font-size: calc(10 * var(--px));
+  }
+
+  .step__pic {
+    grid-area: 2 / 2 / 3 / 3;
+    justify-content: flex-end;
+    min-height: 0;
+  }
+  .step__pic--1 .step__figure { width: calc(112 * var(--px)); }
+  .step__pic--2 .step__figure { width: calc(103 * var(--px)); }
+  .step__pic--3 .step__figure { width: calc(101 * var(--px)); }
+
+  .step__text {
+    grid-area: 1 / 3 / 3 / 4;
+    align-self: center;
+    margin-top: 0;
+    padding-top: 0;
+    padding-left: calc(31 * var(--px));
+    font-size: 12px;
+    line-height: 1.25;
+  }
+
+  /* ---------- Шаг 4: отсчёт минуты ---------- */
+  /* Боковые колонки одинаковой ширины — «60 секунд» стоит по центру
+     карточки, а бейдж прижат к её левому верхнему углу */
+  .step--timer {
+    grid-template-columns: calc(45 * var(--px)) minmax(0, 1fr) calc(45 * var(--px));
+    row-gap: calc(6 * var(--px));
+    min-height: 0;
+    padding-bottom: calc(17 * var(--px));
+  }
+
+  .step__ring {
+    grid-area: 1 / 2 / 2 / 3;
+    align-items: baseline;
+    gap: calc(6 * var(--px));
+    width: auto;
+    height: auto;
+    margin: 0;
+  }
+  .step__ring.is-running {
+    align-items: center;
+    height: calc(100 * var(--px));
+  }
+  .step__ring.is-running .step__ring-svg {
+    width: calc(100 * var(--px));
+    height: calc(100 * var(--px));
+  }
+
+  .step__ring-value {
+    font-family: var(--intro);
+    font-weight: 400;
+    font-size: calc(100 * var(--px));
+  }
+  .step__ring-unit {
+    display: block;
+    font-weight: 700;
+    font-size: calc(24 * var(--px));
+    line-height: 1;
+    color: var(--red);
+  }
+  .step__ring.is-running .step__ring-unit { display: none; }
+
+  /* Кнопка отбита от краёв карточки одинаково слева и справа: слева
+     добавляем разницу между узким полем под бейдж и правым полем */
+  .step--timer .btn {
+    grid-column: 1 / -1;
+    margin-left: calc(12 * var(--px));
+  }
+  .step__reset,
+  .step__status { grid-column: 1 / -1; }
+
+  .btn {
+    padding: calc(13 * var(--px)) calc(16 * var(--px));
+    font-size: calc(14 * var(--px));
+    border-width: 1px;
+    border-radius: calc(10 * var(--px));
+  }
+
+  /* ---------- Форма ---------- */
   /* Поля занимают всю ширину. Важно не переключать .form в column:
      в колонке flex-basis у .field-wrap читается как высота */
+  .form {
+    margin-top: calc(29 * var(--px));
+    gap: calc(11 * var(--px));
+  }
   .field-wrap { flex: 0 0 100%; }
+
+  .field {
+    padding-block: calc(17 * var(--px));
+    padding-inline: calc(40 * var(--px));
+    border-width: 1px;
+    border-color: #eae5e2;
+    border-radius: calc(16 * var(--px));
+  }
+  /* В мобильном макете у поля нет красной подчёркивающей линии */
+  .field__input {
+    padding-bottom: 0;
+    font-size: calc(12 * var(--px));
+    border-bottom: 0;
+  }
+  .field__input::placeholder { color: #b6aeaa; opacity: 1; }
+  .field__picker { width: calc(20 * var(--px)); right: calc(14 * var(--px)); }
+
+  .form__submit { margin-top: calc(4 * var(--px)); }
   .form__submit .btn { width: 100%; }
 
-  .donate { flex-wrap: nowrap; }
-  .donate__label { font-size: clamp(14px, 4vw, 20px); }
+  /* ---------- Красный счётчик ---------- */
+  /* Число и кнопка «поделиться» — одна центрированная строка, подпись под
+     ними на всю ширину: сетка вместо абсолютного позиционирования */
+  .counter {
+    display: grid;
+    grid-template-columns: auto auto;
+    justify-content: center;
+    align-items: center;
+    column-gap: calc(14 * var(--px));
+    row-gap: calc(7 * var(--px));
+    margin-top: calc(48 * var(--px));
+    padding: calc(45 * var(--px)) var(--gutter) calc(38 * var(--px));
+    border-radius: 0;
+  }
+  .counter__num {
+    grid-area: 1 / 1 / 2 / 2;
+    font-size: calc(42 * var(--px));
+    line-height: 1;
+  }
+  .counter__num sup { font-size: calc(16 * var(--px)); }
+  .counter__share {
+    grid-area: 1 / 2 / 2 / 3;
+    position: static;
+    width: calc(36 * var(--px));
+    margin: 0;
+    transform: none;
+  }
+  .counter__caption {
+    grid-area: 2 / 1 / 3 / 3;
+    max-width: calc(230 * var(--px));
+    margin-inline: auto;
+    font-size: calc(16 * var(--px));
+    line-height: 1.125;
+  }
 
-  /* На мобильном видна часть следующей карточки — блок читается как листаемый */
+  /* ---------- Девочка + факт ---------- */
+  .fact {
+    gap: calc(46 * var(--px));
+    margin-top: calc(47 * var(--px));
+    text-align: left;
+  }
+  .fact__pic {
+    align-self: start;
+    width: calc(247 * var(--px));
+    margin-left: calc(27 * var(--px));
+  }
+  .fact__text { line-height: 1.2; }
+
+  /* ---------- Результат ---------- */
+  .result { margin-top: calc(40 * var(--px)); }
+
+  .progress { padding: 0; background: none; }
+  .progress__track { background: #f7dcde; border-radius: calc(16 * var(--px)); }
+  .progress__bar {
+    padding: calc(21 * var(--px)) calc(18 * var(--px));
+    font-size: calc(13 * var(--px));
+    border-radius: calc(16 * var(--px));
+  }
+
+  .result__pulse {
+    margin-top: calc(26 * var(--px));
+    font-size: calc(18 * var(--px));
+  }
+
+  .donate {
+    flex-wrap: nowrap;
+    gap: calc(9 * var(--px));
+    margin-top: calc(22 * var(--px));
+    padding: 0;
+    background: none;
+  }
+  .donate__btn { width: calc(31 * var(--px)); padding: 0; }
+  .donate__label {
+    padding: calc(22 * var(--px)) calc(8 * var(--px));
+    font-size: calc(13 * var(--px));
+    line-height: 1.15;
+    border-radius: calc(14 * var(--px));
+  }
+
+  /* ---------- Спасибо ---------- */
+  .thanks { margin-top: calc(39 * var(--px)); }
+  /* Иллюстрация в макете чуть шире экрана — выпускаем её за поля контейнера */
+  .thanks__art {
+    width: calc(100% + var(--gutter) * 2 + 8 * var(--px));
+    margin-inline: calc(-1 * var(--gutter) - 4 * var(--px));
+  }
+  .thanks__card {
+    width: calc(341 * var(--px));
+    margin-top: calc(-50 * var(--px));
+    padding: calc(11 * var(--px)) calc(16 * var(--px)) calc(14 * var(--px));
+    border-radius: calc(14 * var(--px));
+  }
+  .thanks__title { font-size: calc(25 * var(--px)); }
+  .thanks__text {
+    margin-top: calc(8 * var(--px));
+    font-size: calc(12 * var(--px));
+    line-height: 1.25;
+  }
+  .thanks__link { margin-top: calc(10 * var(--px)); font-size: calc(12 * var(--px)); }
+
+  /* ---------- Карточки-факты ---------- */
+  .facts {
+    margin-top: calc(48 * var(--px));
+    padding-bottom: calc(22 * var(--px));
+  }
+
+  /* Волна в мобильном макете лежит не за карточками, а под ними —
+     ставим её в поток колонкой, без абсолютного позиционирования */
+  .facts__stage { display: flex; flex-direction: column; }
+  .facts__track { order: 1; }
+  .facts__wave {
+    display: block;
+    order: 2;
+    position: static;
+    width: 100%;
+    height: calc(67 * var(--px));
+    margin-top: calc(6 * var(--px));
+  }
+
+  /* Видна кромка следующей карточки — блок читается как листаемый */
   .facts__track {
-    gap: 16px;
-    padding-inline: 16px;
-    scroll-padding-inline: 16px;
+    gap: calc(11 * var(--px));
+    padding-inline: var(--gutter);
+    scroll-padding-inline: var(--gutter);
   }
   .card {
-    --card-w: 82vw;
+    --card-w: calc(341 * var(--px));
     aspect-ratio: auto;
-    min-height: 380px;
-    padding: 44px 24px 32px;
+    min-height: calc(244 * var(--px));
   }
   /* На узком экране пропорции макета дали бы нечитаемый кегль */
-  .card__title { font-size: 22px; }
   .card__text {
     max-width: none;
-    margin-top: 14px;
-    font-size: 15px;
-    line-height: 1.5;
+    font-size: 12px;
+    line-height: 1.55;
   }
 
+  /* Пагинация: боковые колонки одинаковой ширины держат стрелки с точками
+     по центру, а сердце-декор живёт в правой колонке и не сдвигает их */
+  .facts__nav {
+    display: grid;
+    grid-template-columns: 1fr auto auto auto 1fr;
+    gap: 0;
+    margin-top: calc(7 * var(--px));
+  }
+  .nav-btn--prev { grid-column: 2; }
+  .nav-btn--next { grid-column: 4; }
+  .nav-btn { width: calc(34 * var(--px)); }
+
+  .facts__dots {
+    grid-column: 3;
+    display: flex;
+    align-items: center;
+    gap: calc(6 * var(--px));
+    margin-inline: calc(30 * var(--px));
+  }
+
+  .facts__heart {
+    grid-column: 5;
+    display: block;
+    position: static;
+    justify-self: start;
+    width: calc(23 * var(--px));
+    margin-left: calc(40 * var(--px));
+    transform: rotate(37.26deg);
+  }
+
+  /* ---------- Красный блок «за всю жизнь» ---------- */
+  .lifetime {
+    padding: calc(34 * var(--px)) var(--gutter) calc(29 * var(--px));
+  }
   .lifetime__hearts { display: none; }
+  .lifetime__title { font-size: calc(18 * var(--px)); line-height: 1.2; }
+  .lifetime__num {
+    margin-top: calc(6 * var(--px));
+    font-size: calc(46 * var(--px));
+    line-height: 1;
+  }
+  .lifetime__num sup { font-size: calc(18 * var(--px)); }
+  .lifetime__text {
+    margin-top: calc(8 * var(--px));
+    font-size: calc(16 * var(--px));
+    line-height: 1.2;
+  }
+  .lifetime__cta {
+    justify-content: space-between;
+    gap: calc(12 * var(--px));
+    width: 100%;
+    margin-top: calc(34 * var(--px));
+    padding: 0;
+    font-size: calc(18 * var(--px));
+  }
+  .lifetime__cta img { width: calc(38 * var(--px)); }
+
+  /* ---------- Финальный блок ---------- */
+  .outro {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0;
+    padding-top: calc(32 * var(--px));
+    padding-bottom: calc(96 * var(--px));
+  }
+  .outro__girl { width: calc(383 * var(--px)); }
+  .outro__row { gap: calc(37 * var(--px)); }
+  .outro__text { font-size: calc(24 * var(--px)); line-height: 1.1; }
+  .outro__logo { width: calc(184 * var(--px)); }
+
+  /* ---------- Подвал ---------- */
+  .footer > .container {
+    padding-block: calc(33 * var(--px)) calc(48 * var(--px));
+  }
+  .footer__lead { font-size: calc(14 * var(--px)); line-height: 1.2; }
+  .footer__lead strong { font-size: inherit; }
+  .footer__note {
+    margin-top: calc(26 * var(--px));
+    font-size: calc(10 * var(--px));
+    line-height: 1.3;
+  }
 }
 
 /* ================================================================== */
