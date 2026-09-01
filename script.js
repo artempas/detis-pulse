@@ -1137,9 +1137,8 @@
     var options = {
       widget_key: CONFIG.widgetKey,
       // amount: rubles * 100,               // сумма в копейках, от 100 (1 ₽)
-      amount: 100,               // сумма в копейках, от 100 (1 ₽)
+      amount: 100,               // TODO: remove test
       description: 'Пожертвование: ' + durationText(minutes, true) + ' ритма сердца',
-      payment_method: null,               // все доступные способы оплаты
       mixplat_user_fundraising_program_id: 18238
     };
 
