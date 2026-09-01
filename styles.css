@@ -1271,11 +1271,15 @@ body.is-modal-open { overflow: hidden; }
 .modal__dialog--share { width: min(100%, 480px); }
 
 .share-preview {
-  margin-top: 18px;
+  /* Карточка вертикальная (1080×1920), поэтому ограничиваем её по высоте:
+     ширину высчитает aspect-ratio, и превью не распирает поп-ап */
+  margin: 18px auto 0;
+  height: min(56vh, 460px);
+  max-width: 100%;
   background: #f4f4f4;
   border-radius: 16px;
   overflow: hidden;
-  aspect-ratio: 1080 / 1350;
+  aspect-ratio: 1080 / 1920;
 }
 .share-preview img { width: 100%; height: 100%; object-fit: contain; }
 
