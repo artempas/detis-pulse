@@ -797,102 +797,167 @@
     return size;
   }
 
+  /* Геометрия share-карточки — макет Figma «перс число» (node 2001:3),
+     фрейм 1080×1920. Все числа ниже — координаты из макета один в один. */
+  var CARD = {
+    W: 1080,
+    H: 1920,
+    BG: '#af3b2c',
+    RED: '#bf2c23',
+    /* Фон: квадратная решётка сердец, повёрнутая на -10.85°.
+       Шаг задан в повёрнутых координатах (u — вдоль наклона, v — поперёк),
+       вторая решётка вложена в первую со смещением offset* */
+    hearts: {
+      angle: -10.85 * Math.PI / 180,
+      size: 137.601,
+      stepU: 277.90, stepV: 237.80,
+      originU: 214.94, originV: 151.80,
+      offsetU: 138.96, offsetV: -100.57
+    },
+    plate: { w: 946, h: 1132, r: 35 },
+    logo: { w: 504, y: 474.05 },
+    number: { size: 124.848, centerY: 838, maxW: 880, lh: 1.3 },
+    body: { size: 50, top: 986.15, bottom: 1330, maxW: 816, lh: 1.3 },
+    slogan: { size: 63, top: 1349, maxW: 912 },
+    hashtag: { x: 400, y: 1421, w: 280, h: 54.38 }
+  };
+
+  /* Рисует блок строк по правилам CSS line-box: top — верх первой строки,
+     внутри строки em-квадрат сдвинут вниз на полулидинг (lh - 1) / 2.
+     Требует textAlign = 'center' и textBaseline = 'top'. */
+  function drawLines(ctx, lines, cx, top, size, lh) {
+    var step = size * lh;
+    var half = (step - size) / 2;
+    for (var i = 0; i < lines.length; i++) {
+      ctx.fillText(lines[i], cx, top + i * step + half);
+    }
+  }
+
+  /* Наклонная россыпь сердец на всю площадь холста.
+     У heart8.png непрозрачный белый фон, поэтому режим multiply —
+     как mix-blend-mode на самой странице: белое исчезает, остаётся сердце */
+  function drawHeartField(ctx, heart, W, H) {
+    var p = CARD.hearts;
+    var cos = Math.cos(p.angle);
+    var sin = Math.sin(p.angle);
+
+    /* Габариты холста в повёрнутых координатах — чтобы знать, сколько
+       рядов решётки перебрать, и не рисовать заведомо невидимое */
+    var uMin = Infinity, uMax = -Infinity, vMin = Infinity, vMax = -Infinity;
+    [[0, 0], [W, 0], [0, H], [W, H]].forEach(function (c) {
+      var u = c[0] * cos + c[1] * sin;
+      var v = -c[0] * sin + c[1] * cos;
+      uMin = Math.min(uMin, u); uMax = Math.max(uMax, u);
+      vMin = Math.min(vMin, v); vMax = Math.max(vMax, v);
+    });
+
+    var s = p.size;
+    ctx.save();
+    ctx.globalCompositeOperation = 'multiply';
+    ctx.rotate(p.angle);
+    [[0, 0], [p.offsetU, p.offsetV]].forEach(function (o) {
+      var u0 = p.originU + o[0];
+      var v0 = p.originV + o[1];
+      var i1 = Math.ceil((uMax + s - u0) / p.stepU);
+      var j1 = Math.ceil((vMax + s - v0) / p.stepV);
+      for (var i = Math.floor((uMin - s - u0) / p.stepU); i <= i1; i++) {
+        for (var j = Math.floor((vMin - s - v0) / p.stepV); j <= j1; j++) {
+          ctx.drawImage(heart, u0 + i * p.stepU - s / 2, v0 + j * p.stepV - s / 2, s, s);
+        }
+      }
+    });
+    ctx.restore();
+  }
+
   function buildCard(variant) {
     return Promise.all([
       loadImage('assets/ds_logo.png'),
       loadImage('assets/heart8.png'),
-      document.fonts ? document.fonts.ready : Promise.resolve()
+      loadImage('assets/group23.svg'),
+      /* Явно дожидаемся обоих начертаний: без этого canvas молча
+         подставит системный шрифт вместо Intro / Open Sans */
+      document.fonts
+        ? Promise.all([
+            document.fonts.load('700 125px Intro'),
+            document.fonts.load('400 50px "Open Sans"')
+          ]).then(function () { return document.fonts.ready; })
+        : Promise.resolve()
     ]).then(function (res) {
       var logo = res[0];
       var heart = res[1];
+      var hashtag = res[2];
 
-      var W = 1080, H = 1350, PAD = 80;
+      var W = CARD.W, H = CARD.H, cx = W / 2;
       var canvas = document.createElement('canvas');
       canvas.width = W;
       canvas.height = H;
       var ctx = canvas.getContext('2d');
-      var FAMILY = 'Intro, Inter, sans-serif';
+      var INTRO = 'Intro, Inter, sans-serif';
+      var OS = '"Open Sans", Inter, sans-serif';
 
-      /* Фон */
-      ctx.fillStyle = '#BF2C23';
+      ctx.fillStyle = CARD.BG;
       ctx.fillRect(0, 0, W, H);
+      drawHeartField(ctx, heart, W, H);
 
-      /* Декоративные сердца по краям.
-         У heart8.png непрозрачный белый фон, поэтому режим multiply —
-         как mix-blend-mode на самой странице: белое исчезает, остаётся сердце */
-      var hw = 84;
-      var hh = hw * (heart.height / heart.width);
-      ctx.globalCompositeOperation = 'multiply';
-      [0.10, 0.30, 0.50, 0.70].forEach(function (t, i) {
-        var hy = H * t;
-        ctx.drawImage(heart, i % 2 ? 26 : 66, hy, hw, hh);
-        ctx.drawImage(heart, W - hw - (i % 2 ? 26 : 66), hy + 16, hw, hh);
-      });
-      ctx.globalCompositeOperation = 'source-over';
+      /* Белая плашка с мягкой тенью */
+      var pw = CARD.plate.w, ph = CARD.plate.h;
+      ctx.save();
+      ctx.shadowColor = 'rgba(0, 0, 0, .12)';
+      ctx.shadowBlur = 27.6;
+      ctx.shadowOffsetX = 4;
+      ctx.shadowOffsetY = 4;
+      ctx.fillStyle = '#fff';
+      roundRect(ctx, (W - pw) / 2, (H - ph) / 2, pw, ph, CARD.plate.r);
+      ctx.fill();
+      ctx.restore();
+
+      /* Логотип фонда */
+      var logoW = CARD.logo.w;
+      var logoH = logoW * (logo.height / logo.width);
+      ctx.drawImage(logo, (W - logoW) / 2, CARD.logo.y, logoW, logoH);
 
       ctx.textAlign = 'center';
       ctx.textBaseline = 'top';
-      var cx = W / 2;
-      var maxW = W - PAD * 2;
-      var top = 110;
 
-      /* Логотип фонда на белой плашке (лого красное — на красном не читается) */
-      var lw = 440;
-      var lh = lw * (logo.height / logo.width);
-      ctx.fillStyle = '#fff';
-      roundRect(ctx, cx - lw / 2 - 28, top - 22, lw + 56, lh + 44, 24);
-      ctx.fill();
-      ctx.drawImage(logo, cx - lw / 2, top, lw, lh);
-
-      /* Содержимое карточки описывается блоками, чтобы его можно было
-         измерить и отцентрировать между логотипом и нижней строкой */
+      /* Число ударов: по макету закреплён центр строки, а не её верх */
       var num = formatNumber(state.beats || 0);
-      var blocks;
+      var numSize = fitFont(ctx, num, CARD.number.maxW, CARD.number.size, '700', INTRO);
+      ctx.font = '700 ' + numSize + 'px ' + INTRO;
+      ctx.fillStyle = CARD.RED;
+      drawLines(ctx, [num], cx, CARD.number.centerY - numSize * CARD.number.lh / 2,
+        numSize, CARD.number.lh);
 
-      if (variant === 'result') {
-        blocks = [
-          { text: num, weight: '700', size: fitFont(ctx, num, maxW, 150, '700', FAMILY), lh: 1.2, gap: 44 },
-          { text: beatsWord(state.beats) + ' за всю жизнь мое сердце сделало', weight: '700', size: 56, lh: 1.28, gap: 0 }
-        ];
+      /* Подпись под числом. Разбивка на строки в основном варианте взята
+         из макета; «final» дополняется вторым предложением и переносится
+         автоматически, кегль при необходимости уменьшается */
+      var beats = beatsWord(state.beats);
+      var bodySize = CARD.body.size;
+      var lines;
+      if (variant === 'final') {
+        var body = beats + ' сделало моё сердце за всю жизнь. ' +
+          'Сегодня я подарил минуту его ритма ребенку с пороком сердца.';
+        for (;;) {
+          ctx.font = '400 ' + bodySize + 'px ' + OS;
+          lines = splitLines(ctx, body, CARD.body.maxW);
+          if (bodySize <= 30 ||
+              CARD.body.top + lines.length * bodySize * CARD.body.lh <= CARD.body.bottom) break;
+          bodySize -= 2;
+        }
       } else {
-        blocks = [
-          { text: 'За всю жизнь мое сердце сделало', weight: '700', size: 52, lh: 1.3, gap: 30 },
-          { text: num, weight: '700', size: fitFont(ctx, num, maxW, 138, '700', FAMILY), lh: 1.2, gap: 36 },
-          { text: beatsWord(state.beats) + '. Сегодня я подарил минуту его ритма ребенку с пороком сердца.', weight: '400', size: 46, lh: 1.35, gap: 0 }
-        ];
+        lines = [beats + ' сделало моё сердце', 'за всю жизнь'];
+        ctx.font = '400 ' + bodySize + 'px ' + OS;
       }
+      ctx.fillStyle = '#000';
+      drawLines(ctx, lines, cx, CARD.body.top, bodySize, CARD.body.lh);
 
-      /* Замер: сколько строк займёт каждый блок */
-      var total = 0;
-      blocks.forEach(function (b) {
-        ctx.font = b.weight + ' ' + b.size + 'px ' + FAMILY;
-        b.lines = splitLines(ctx, b.text, maxW);
-        b.height = b.lines.length * b.size * b.lh;
-        total += b.height + b.gap;
-      });
+      /* Слоган и хэштег-логотип акции */
+      var slogan = 'Подари минуту сердцу';
+      var sloganSize = fitFont(ctx, slogan, CARD.slogan.maxW, CARD.slogan.size, '700', INTRO);
+      ctx.font = '700 ' + sloganSize + 'px ' + INTRO;
+      ctx.fillStyle = CARD.RED;
+      drawLines(ctx, [slogan], cx, CARD.slogan.top, sloganSize, 1);
 
-      var areaTop = top + lh + 60;
-      var areaBottom = H - 250;
-      var y = areaTop + Math.max(0, (areaBottom - areaTop - total) / 2);
-
-      ctx.fillStyle = '#fff';
-      blocks.forEach(function (b) {
-        ctx.font = b.weight + ' ' + b.size + 'px ' + FAMILY;
-        b.lines.forEach(function (line) {
-          ctx.fillText(line, cx, y);
-          y += b.size * b.lh;
-        });
-        y += b.gap;
-      });
-
-      /* Нижняя строка — хэштег акции */
-      ctx.font = '700 56px ' + FAMILY;
-      ctx.fillText('Подари минуту сердцу #пульсуй', cx, H - 190);
-
-      ctx.font = '400 28px ' + FAMILY;
-      ctx.globalAlpha = 0.8;
-      ctx.fillText('Благотворительный фонд «Детские сердца»', cx, H - 100);
-      ctx.globalAlpha = 1;
+      ctx.drawImage(hashtag, CARD.hashtag.x, CARD.hashtag.y, CARD.hashtag.w, CARD.hashtag.h);
 
       return canvas;
     });
