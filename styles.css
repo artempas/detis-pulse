@@ -130,13 +130,13 @@ button {
   gap: clamp(16px, 2vw, 40px);
 }
 
-.header__logo img { width: clamp(180px, 20.36vw, 391px); height: auto; }
+.header__logo img { height: clamp(50px, 5.61vw, 108px); width: auto; }
 
 .header__help {
   display: flex;
   align-items: center;
   gap: clamp(10px, 1.82vw, 35px);
-  font-family: var(--inter);
+  font-family: var(--intro);
   font-size: clamp(18px, 2.08vw, 40px);
   line-height: 1.2;
   text-decoration: none;
@@ -205,6 +205,9 @@ button {
   list-style: none;
 }
 
+/* Разворачивающийся заголовок инструкции — только в мобильной версии */
+.steps__toggle { display: none; }
+
 .step {
   display: flex;
   flex-direction: column;
@@ -266,7 +269,6 @@ button {
 }
 
 .step__text {
-  margin-top: auto;
   padding-top: clamp(8px, 0.9vw, 17px);
   font-family: var(--os);
   font-size: clamp(13px, 1.08vw, 20.73px);
@@ -379,6 +381,7 @@ button {
 
 @media (prefers-reduced-motion: reduce) {
   .step__ring-progress { transition: none; }
+  .steps__toggle-icon { transition: none; }
 }
 
 /* ---------- Форма ---------- */
@@ -634,6 +637,7 @@ button {
   flex-direction: column;
   align-items: center;
   margin-top: clamp(48px, 5.83vw, 112px);
+  margin-bottom: clamp(48px, 5.83vw, 112px);
 }
 
 .thanks__art { width: min(100%, 1125px); }
@@ -673,6 +677,11 @@ button {
   color: var(--red);
   text-decoration: underline;
   text-underline-offset: 4px;
+}
+
+.thanks__back {
+  display: inline-flex;
+  margin-top: clamp(16px, 1.6vw, 32px);
 }
 
 /* ---------- Карточки-факты ---------- */
@@ -1177,12 +1186,11 @@ button {
     --gutter: calc(16 * var(--px));
     padding-block: calc(15 * var(--px)) 0;
   }
-  .header__logo img { width: calc(140 * var(--px)); }
+  .header__logo img { height: calc(39 * var(--px)); width: auto; }
 
   .header__help { gap: calc(20 * var(--px)); }
   .header__help span {
     display: inline;
-    font-family: var(--os);
     font-size: calc(14 * var(--px));
   }
   .header__help img { width: calc(36 * var(--px)); }
@@ -1218,7 +1226,46 @@ button {
 
   .steps__list {
     grid-template-columns: minmax(0, 1fr);
-    gap: calc(12 * var(--px));
+    /* Отступ между карточками задаётся не через gap, а margin-bottom
+       у самой карточки (см. .step ниже) — так у схлопывающихся шагов
+       отступ анимируется вместе с высотой и не «дёргает» соседей */
+    gap: 0;
+  }
+
+  .step:not(:last-child) { margin-bottom: calc(12 * var(--px)); }
+
+  /* Заголовок-переключатель: по умолчанию инструкция (шаги 1-3) свёрнута */
+  .steps__toggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: calc(6 * var(--px));
+    margin: 0 auto calc(16 * var(--px));
+    font-family: var(--os);
+    font-size: calc(13 * var(--px));
+    color: #7a7a7a;
+  }
+  .steps__toggle-icon {
+    width: calc(10 * var(--px));
+    height: auto;
+    transition: transform .2s ease;
+  }
+  .steps__toggle[aria-expanded="true"] .steps__toggle-icon {
+    transform: rotate(180deg);
+  }
+
+  /* Схлопывающиеся карточки шагов 1-3: высота, отступы и прозрачность
+     анимируются из JS (steps-toggle); здесь только свёрнутое состояние
+     по умолчанию — на случай, если скрипт не выполнится */
+  .step.step--collapsible {
+    display: none;
+    overflow: hidden;
+    transition:
+      height .3s ease,
+      opacity .3s ease,
+      margin-bottom .3s ease,
+      padding-top .3s ease,
+      padding-bottom .3s ease;
   }
 
   /* Колонки карточки: бейдж | иллюстрация | текст.
@@ -1475,6 +1522,7 @@ button {
     line-height: 1.25;
   }
   .thanks__link { margin-top: calc(10 * var(--px)); font-size: calc(12 * var(--px)); }
+  .thanks__back { margin-top: calc(14 * var(--px)); }
 
   /* ---------- Карточки-факты ---------- */
   .facts {

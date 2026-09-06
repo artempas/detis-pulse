@@ -18,7 +18,7 @@
     customMinutesMax: 1440,  // сутки — верхняя граница для «выбрать время»
     countUpMs: 2000,
     // Открытый ключ платёжного виджета MixPlat (docs.mixplat.ru/widget-options)
-    widgetKey: '38f83268-6f47-4546-adee-23cc012bf9cc'
+    widgetKey: '853a46dc-98e7-4243-bb7c-1599c0d9debb'
   };
 
   /* Состояние пользователя */
@@ -540,6 +540,141 @@
   });
 
   /* Кнопка «Помочь» в шапке открывает поп-ап с платёжной формой фонда */
+  (function initStepsToggle() {
+    var toggle = $('#steps-toggle');
+    var list = $('.steps__list');
+    if (!toggle || !list) return;
+    var items = Array.prototype.slice.call(list.querySelectorAll('.step--collapsible'));
+
+    // Функция схлопывания работает через инлайн-стили, а они не подчиняются
+    // медиа-запросам — поэтому включаем её только в мобильном брейкпоинте
+    // (иначе шаги 1-3 пропадали бы и на десктопе)
+    var mq = window.matchMedia('(max-width: 640px)');
+    var active = false;
+
+    // Карточка со своим padding/margin не может визуально схлопнуться до 0
+    // одной только высотой (box-sizing: border-box не даёт уйти в минус) —
+    // поэтому вместе с высотой анимируем и вертикальные отступы. «Открытые»
+    // значения и полную высоту меряем один раз здесь, в естественном
+    // (ещё не свёрнутом) состоянии карточки, и только потом схлопываем —
+    // повторный замер посреди анимации сбивает переход padding (браузер
+    // застревал на промежуточном значении из-за форс-reflow между двумя
+    // синхронными присвоениями одного и того же transition-свойства)
+    function setup() {
+      if (active) return;
+      active = true;
+      items.forEach(function (el) {
+        el.style.display = 'grid'; // временно, чтобы измерить реальные размеры карточки
+        var cs = getComputedStyle(el);
+        el.dataset.openMargin = cs.marginBottom;
+        el.dataset.openPadTop = cs.paddingTop;
+        el.dataset.openPadBottom = cs.paddingBottom;
+        el.dataset.openHeight = el.scrollHeight;
+        el.style.marginBottom = '0px';
+        el.style.paddingTop = '0px';
+        el.style.paddingBottom = '0px';
+        el.style.opacity = '0';
+        el.style.height = '0px';
+        el.style.display = ''; // возвращаем управление display классу (display:none по умолчанию)
+      });
+    }
+
+    // При возврате на десктоп полностью снимаем инлайн-стили — иначе они
+    // перебьют обычную (не мобильную) вёрстку шагов
+    function teardown() {
+      if (!active) return;
+      active = false;
+      toggle.setAttribute('aria-expanded', 'false');
+      list.classList.remove('is-expanded');
+      items.forEach(function (el) {
+        el.style.display = '';
+        el.style.height = '';
+        el.style.minHeight = '';
+        el.style.marginBottom = '';
+        el.style.paddingTop = '';
+        el.style.paddingBottom = '';
+        el.style.opacity = '';
+      });
+    }
+
+    function syncToViewport() {
+      if (mq.matches) setup(); else teardown();
+    }
+    syncToViewport();
+    if (mq.addEventListener) mq.addEventListener('change', syncToViewport);
+    else mq.addListener(syncToViewport); // старые Safari
+
+    // Два кадра ожидания вместо offsetHeight: гарантирует, что браузер
+    // действительно отрисовал «схлопнутое» состояние, прежде чем запускать
+    // переход к целевому — иначе анимация местами дёргается или щёлкает
+    function nextFrame(cb) {
+      requestAnimationFrame(function () { requestAnimationFrame(cb); });
+    }
+
+    function expand(el) {
+      el.style.display = 'grid';
+      if (reduceMotion) {
+        el.style.height = 'auto';
+        el.style.marginBottom = el.dataset.openMargin;
+        el.style.paddingTop = el.dataset.openPadTop;
+        el.style.paddingBottom = el.dataset.openPadBottom;
+        el.style.opacity = '1';
+        return;
+      }
+      el.style.minHeight = '0';
+      nextFrame(function () {
+        el.style.height = el.dataset.openHeight + 'px';
+        el.style.paddingTop = el.dataset.openPadTop;
+        el.style.paddingBottom = el.dataset.openPadBottom;
+        el.style.marginBottom = el.dataset.openMargin;
+        el.style.opacity = '1';
+      });
+    }
+
+    function collapse(el) {
+      if (reduceMotion) {
+        el.style.display = 'none';
+        el.style.height = '0px';
+        el.style.minHeight = '';
+        el.style.marginBottom = '0px';
+        el.style.paddingTop = '0px';
+        el.style.paddingBottom = '0px';
+        el.style.opacity = '0';
+        return;
+      }
+      el.style.height = el.dataset.openHeight + 'px';
+      el.style.minHeight = '0'; // снимаем минимум карточки, иначе схлопнется не до конца
+      nextFrame(function () {
+        el.style.height = '0px';
+        el.style.marginBottom = '0px';
+        el.style.paddingTop = '0px';
+        el.style.paddingBottom = '0px';
+        el.style.opacity = '0';
+      });
+    }
+
+    items.forEach(function (el) {
+      el.addEventListener('transitionend', function (e) {
+        if (e.propertyName !== 'height') return;
+        if (toggle.getAttribute('aria-expanded') === 'true') {
+          el.style.height = 'auto';
+          el.style.minHeight = '';
+        } else {
+          el.style.display = 'none';
+          el.style.minHeight = ''; // иначе следующий expand() измерит высоту без учёта минимума карточки
+        }
+      });
+    });
+
+    toggle.addEventListener('click', function () {
+      if (!active) return; // кнопка скрыта вне мобильного брейкпоинта, но проверим на всякий случай
+      var expanded = toggle.getAttribute('aria-expanded') === 'true';
+      toggle.setAttribute('aria-expanded', String(!expanded));
+      list.classList.toggle('is-expanded', !expanded);
+      items.forEach(expanded ? collapse : expand);
+    });
+  })();
+
   (function initHeaderHelp() {
     var link = $('.header__help');
     if (!link) return;
@@ -719,14 +854,12 @@
   /* Экран благодарности                                                 */
   /* ------------------------------------------------------------------ */
 
-  /* Показывается ТОЛЬКО после успешной оплаты.
-     Если пользователь закрыл или пропустил платеж — экран остаётся скрытым,
-     и он просто скроллит дальше к карточкам с фактами. */
+  /* Показывается ТОЛЬКО после успешной оплаты — отдельная страница,
+     на которую пользователь попадает по редиректу. Если он закрыл или
+     пропустил платеж — редиректа не происходит, он остаётся на странице. */
   function onPaymentSuccess() {
     state.donated = true;
-    var thanks = $('#thanks');
-    unlock(thanks);
-    scrollToEl(thanks);
+    window.location.href = 'thanks.html';
   }
 
   /* ------------------------------------------------------------------ */

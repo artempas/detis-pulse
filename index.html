@@ -194,8 +194,33 @@
         id="measure"
         aria-label="Как измерить пульс"
       >
+        <button
+          type="button"
+          class="steps__toggle"
+          id="steps-toggle"
+          aria-expanded="false"
+          aria-controls="step-1 step-2 step-3"
+        >
+          Как измерить пульс
+          <svg
+            class="steps__toggle-icon"
+            width="10"
+            height="6"
+            viewBox="0 0 10 6"
+            fill="none"
+            aria-hidden="true"
+          >
+            <path
+              d="M1 1L5 5L9 1"
+              stroke="currentColor"
+              stroke-width="1.5"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+          </svg>
+        </button>
         <ol class="steps__list">
-          <li class="step">
+          <li class="step step--collapsible" id="step-1">
             <div class="step__head"><span class="step__num">1</span></div>
             <div class="step__pic step__pic--1">
               <span class="step__figure"
@@ -206,7 +231,7 @@
             </div>
             <p class="step__text">Положите руку на ровную поверхность</p>
           </li>
-          <li class="step">
+          <li class="step step--collapsible" id="step-2">
             <div class="step__head"><span class="step__num">2</span></div>
             <div class="step__pic step__pic--2">
               <span class="step__figure"
@@ -220,7 +245,7 @@
               запястье
             </p>
           </li>
-          <li class="step">
+          <li class="step step--collapsible" id="step-3">
             <div class="step__head">
               <span class="step__num">3</span>
               <img
@@ -251,7 +276,12 @@
             </p>
           </li>
           <li class="step step--timer">
-            <div class="step__head"><span class="step__num">4</span></div>
+            <div class="step__head"><span class="step__num" style="background: none;"><img
+            class="hero__heart"
+            src="assets/vector66.svg"
+            alt=""
+            aria-hidden="true"
+          /></span></div>
             <p
               class="step__ring"
               id="timer-display"
@@ -400,7 +430,6 @@
 
       <!-- ===== Пожертвование ===== -->
       <section class="result container is-locked" id="donate" hidden>
-        <div id='d3a18150-a6cb-4ad5-b962-4424a75c778f' data-type='mixplat-stat'></div>
         <!-- <div class="progress">
           <div class="progress__track">
             <div
@@ -442,20 +471,7 @@
             <img src="assets/group19.svg" alt="" aria-hidden="true" />
           </button>
         </div>
-      </section>
-
-      <!-- ===== Экран благодарности (только после успешной оплаты) ===== -->
-      <section class="thanks container" id="thanks" hidden>
-        <div class="thanks__art">
-          <img src="assets/img1.png" alt="Люди украшают дерево-сердце" />
-        </div>
-        <div class="thanks__card">
-          <p class="thanks__title">Спасибо</p>
-          <p class="thanks__text">
-            Сегодня ваше сердце помогло другому сердцу продолжать биться.
-          </p>
-          <a class="thanks__link" href="#facts">Узнать больше о своем сердце</a>
-        </div>
+        <div id='d3a18150-a6cb-4ad5-b962-4424a75c778f' data-type='mixplat-stat'></div>
       </section>
 
       <!-- ===== Факты о сердце ===== -->
@@ -903,7 +919,7 @@
           <p class="outro__text">Одна минута способна продлить целую жизнь!</p>
           <div class="outro__logo">
             <img
-              src="assets/ds_logo.png"
+              src="assets/ds_logo.square.png"
               alt="Благотворительный фонд «Детские сердца»"
             />
           </div>
@@ -931,10 +947,7 @@
         </p>
         <p class="footer__note">
           *Количество ударов сердца рассчитано на основе среднего
-          математического значения и не является точным. Благотворительный фонд
-          помощи детям с врождёнными заболеваниями сердца «Детские сердца» ИНН
-          7704244292 ОГРН 1027746000490 119002, г. Москва, Карманицкий переулок,
-          д. 9
+          математического значения и не является точным
         </p>
       </div>
     </footer>
