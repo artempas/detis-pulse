@@ -364,25 +364,10 @@
 
       state.birth = parseDate(birthday.value);
       state.pulse = +pulse.value;
-      state.beats = calcBeats(state.birth, state.pulse);
+      state.beats = calculateLifetimeHeartbeats(state.birth, state.pulse).totalBeats;
       showResult();
     });
   })();
-
-  /* ------------------------------------------------------------------ */
-  /* Экран 3 — расчёт и результат                                        */
-  /* ------------------------------------------------------------------ */
-
-  /* Формула: минут жизни × пульс в покое.
-     Минуты считаются от даты рождения (00:00) до момента `at`,
-     результат округляется вниз до целого удара.
-     Минуты специально не округляются до целых: иначе число росло бы
-     скачком раз в минуту, а не в темпе пульса. */
-  function calcBeats(birth, pulse, at) {
-    var ms = (at || Date.now()) - birth.getTime();
-    return Math.max(0, Math.floor(ms / 60000 * pulse));
-  }
-
   /* Число всегда в одну строку: подбираем размер под ширину контейнера */
   function fitNumber(el) {
     el.style.fontSize = '';
@@ -469,7 +454,7 @@
     var thump = Math.min(160, period * 0.5);
 
     liveTimer = setInterval(function () {
-      state.beats = calcBeats(state.birth, state.pulse);
+      state.beats++;
       var result = $('#result-number');
       var personal = $('#personal-number');
       setNumber(result, state.beats);
@@ -1297,3 +1282,95 @@
     config: CONFIG
   };
 })();
+
+/**
+ * Калькулятор ударов сердца за всю жизнь.
+ * Концепция:
+ * 1. Возрастная кривая "нормального" пульса (baseline) — кусочно-линейная интерполяция
+ *    по клиническим ориентирам (новорождённые -> дети -> подростки -> взрослые -> пожилые).
+ * 2. Для каждого возрастного диапазона задан также допустимый физиологический коридор
+ *    (min/max), в который клипуется введённый пользователем пульс — чтобы случайный
+ *    замер "после тренировки" или ошибка ввода не исказили результат.
+ * 3. Из клипованного пульса и baseline для ТЕКУЩЕГО возраста считается персональный
+ *    коэффициент k, который затем применяется ко всей кривой жизни человека.
+ * 4. Итог — интеграл (сумма по дням) baseline(age) * k по всем прожитым дням.
+ */
+
+// Точки возрастной кривой: возраст в годах -> { baseline, min, max } (уд/мин)
+// Значения — обобщение клинических ориентиров (MedlinePlus/CDC/AHA/Mayo Clinic).
+const AGE_POINTS = [
+  { age: 0,       baseline: 130, min: 100, max: 190 }, // новорождённый
+  { age: 1 / 12,  baseline: 125, min: 100, max: 190 },
+  { age: 1,       baseline: 110, min: 80,  max: 160 }, // 1-12 мес
+  { age: 3,       baseline: 105, min: 80,  max: 130 }, // тоддлер
+  { age: 5,       baseline: 100, min: 80,  max: 130 }, // дошкольник (+запас на активность)
+  { age: 6,       baseline: 95,  min: 75,  max: 130 },
+  { age: 12,      baseline: 85,  min: 75,  max: 130 }, // школьник
+  { age: 13,      baseline: 80,  min: 50,  max: 110 }, // подросток
+  { age: 19,      baseline: 75,  min: 45,  max: 110 },
+  { age: 20,      baseline: 73,  min: 40,  max: 100 }, // взрослый (40 — граница нормы для атлетов)
+  { age: 64,      baseline: 73,  min: 40,  max: 100 },
+  { age: 65,      baseline: 73,  min: 40,  max: 100 }, // пожилой
+  { age: 120,     baseline: 73,  min: 40,  max: 100 },
+];
+
+function interpolate(age, key) {
+  if (age <= AGE_POINTS[0].age) return AGE_POINTS[0][key];
+  const last = AGE_POINTS[AGE_POINTS.length - 1];
+  if (age >= last.age) return last[key];
+
+  for (let i = 0; i < AGE_POINTS.length - 1; i++) {
+    const p0 = AGE_POINTS[i];
+    const p1 = AGE_POINTS[i + 1];
+    if (age >= p0.age && age <= p1.age) {
+      const t = (age - p0.age) / (p1.age - p0.age);
+      return p0[key] + t * (p1[key] - p0[key]);
+    }
+  }
+  return last[key];
+}
+
+function getBaseline(age) { return interpolate(age, 'baseline'); }
+function getMin(age) { return interpolate(age, 'min'); }
+function getMax(age) { return interpolate(age, 'max'); }
+
+function clip(value, min, max) {
+  return Math.max(min, Math.min(max, value));
+}
+
+function calculateLifetimeHeartbeats(birth, measuredPulse, now = new Date()) {
+  const msPerYear = 365.25 * 24 * 60 * 60 * 1000;
+  const currentAgeYears = (now - birth) / msPerYear;
+
+  if (currentAgeYears < 0) throw new Error('Дата рождения в будущем');
+
+  // 1. Клипуем введённый пульс в физиологически допустимый диапазон для текущего возраста
+  const minAtCurrent = getMin(currentAgeYears);
+  const maxAtCurrent = getMax(currentAgeYears);
+  const pulseClipped = clip(measuredPulse, minAtCurrent, maxAtCurrent);
+
+  // 2. Персональный коэффициент относительно baseline на текущий возраст
+  const baselineAtCurrent = getBaseline(currentAgeYears);
+  const k = pulseClipped / baselineAtCurrent;
+
+  // 3. Численное интегрирование по прожитым дням (шаг в днях)
+  const stepDays = 1;
+  const stepYears = stepDays / 365.25;
+  const minutesPerStep = stepDays * 24 * 60;
+
+  let totalBeats = 0;
+  for (let age = 0; age < currentAgeYears; age += stepYears) {
+    const hr = getBaseline(age) * k;
+    totalBeats += hr * minutesPerStep;
+  }
+
+  return {
+    currentAgeYears: Number(currentAgeYears.toFixed(2)),
+    measuredPulse,
+    pulseClipped: Number(pulseClipped.toFixed(1)),
+    wasClipped: pulseClipped !== measuredPulse,
+    personalFactor: Number(k.toFixed(3)),
+    totalBeats: Math.round(totalBeats),
+  };
+}
+
