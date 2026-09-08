@@ -976,7 +976,7 @@
 
   function buildCard(variant) {
     return Promise.all([
-      loadImage('assets/ds_logo.png'),
+      loadImage('assets/ds_logo.square.png'),
       loadImage('assets/heart8.png'),
       loadImage('assets/group23.svg'),
       /* Явно дожидаемся обоих начертаний: без этого canvas молча
@@ -1249,8 +1249,7 @@
 
     var options = {
       widget_key: CONFIG.widgetKey,
-      // amount: rubles * 100,               // сумма в копейках, от 100 (1 ₽)
-      amount: 100,               // TODO: remove test
+      amount: rubles * 100,               // сумма в копейках, от 100 (1 ₽)
       description: 'Пожертвование: ' + durationText(minutes, true) + ' ритма сердца',
       user_fundraising_program_id: 18238
     };

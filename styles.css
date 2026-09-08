@@ -1848,6 +1848,41 @@ body.is-modal-open { overflow: hidden; }
 /* ---------- Share-карточка ---------- */
 .modal__dialog--share { width: min(100%, 480px); }
 
+/* Заголовок «Ваша карточка» — на одном уровне с крестиком */
+.modal__dialog--share { padding-top: 8px; }
+.modal__dialog--share .modal__title {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding-inline: 48px;
+}
+
+/* Аккуратный скролл внутри поп-апа «Поделиться».
+   scrollbar-width НЕ задаём: в Chromium он отключает кастомизацию
+   через ::-webkit-scrollbar. Для Firefox стили ниже, в @supports. */
+.modal__dialog--share::-webkit-scrollbar {
+  width: 8px;
+}
+.modal__dialog--share::-webkit-scrollbar-track {
+  margin: 20px 0;
+  background: transparent;
+}
+.modal__dialog--share::-webkit-scrollbar-thumb {
+  background: rgba(191, 44, 35, .55);
+  border-radius: 999px;
+}
+.modal__dialog--share::-webkit-scrollbar-thumb:hover {
+  background: var(--red);
+}
+/* Firefox (не Chromium: там scrollbar-width отключает ::-webkit-scrollbar) */
+@supports (-moz-orient: inline) {
+  .modal__dialog--share {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(191, 44, 35, .55) transparent;
+  }
+}
+
 .share-preview {
   /* Карточка вертикальная (1080×1920), поэтому ограничиваем её по высоте:
      ширину высчитает aspect-ratio, и превью не распирает поп-ап */
