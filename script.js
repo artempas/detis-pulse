@@ -478,11 +478,9 @@
   function showResult() {
     var result = $('#result');
     var donate = $('#donate');
-    var personal = $('#personal-card');
 
     unlock(result);
     unlock(donate);
-    unlock(personal);
 
     /* Персонализация блока пожертвования */
     $('#donate-pulse').textContent = state.pulse + ' ' + beatsWord(state.pulse);
@@ -492,7 +490,6 @@
     scrollToEl(result);
     /* Сначала анимация подсчёта до текущего значения, затем живой счётчик */
     countUp($('#result-number'), state.beats, startLiveCounter);
-    countUp($('#personal-number'), state.beats);
   }
 
   function updateMinutesLabel() {
@@ -836,15 +833,26 @@
   })();
 
   /* ------------------------------------------------------------------ */
-  /* Экран благодарности                                                 */
+  /* Персональная карточка после оплаты                                  */
   /* ------------------------------------------------------------------ */
 
-  /* Показывается ТОЛЬКО после успешной оплаты — отдельная страница,
-     на которую пользователь попадает по редиректу. Если он закрыл или
-     пропустил платеж — редиректа не происходит, он остаётся на странице. */
+  /* Персональная share-карточка разблокируется ТОЛЬКО после успешной оплаты.
+     Если пользователь закрыл или пропустил платёж — блок остаётся скрытым. */
   function onPaymentSuccess() {
     state.donated = true;
-    window.location.href = 'thanks.html';
+
+    var personal = $('#personal-card');
+    unlock(personal);
+    scrollToEl(personal);
+
+    /* Пауза живого счётчика на время анимации подсчёта, иначе таймер
+       #result-number перебивал бы count-up персонального числа. */
+    stopLiveCounter();
+    countUp($('#personal-number'), state.beats, startLiveCounter);
+
+    /* Сразу открываем поп-ап «поделиться» с финальной карточкой */
+    var shareBtn = personal && personal.querySelector('[data-share]');
+    if (shareBtn) shareBtn.click();
   }
 
   /* ------------------------------------------------------------------ */

@@ -541,6 +541,7 @@ button {
   max-width: 1500px;
   display: flex;
   align-items: center;
+  flex-direction: row;
   gap: clamp(24px, 5.47vw, 105px);
   margin-top: clamp(48px, 5.68vw, 109px);
 }
@@ -549,6 +550,10 @@ button {
   flex: 0 0 clamp(180px, 27.92vw, 536px);
   aspect-ratio: 536 / 528;
   border-radius: 8px;
+}
+
+.fact__side {
+  flex-grow: 1;
 }
 
 .fact__text {
@@ -561,7 +566,8 @@ button {
   display: flex;
   flex-direction: column;
   align-items: center;
-  margin-top: clamp(48px, 7.92vw, 152px);
+  margin: 0;
+  width: 100%;
 }
 
 .progress,
@@ -1472,7 +1478,6 @@ button {
   .fact__text { line-height: 1.2; }
 
   /* ---------- Результат ---------- */
-  .result { margin-top: calc(40 * var(--px)); }
 
   .progress { padding: 0; background: none; }
   .progress__track { background: #f7dcde; border-radius: calc(16 * var(--px)); }
@@ -1490,8 +1495,8 @@ button {
   .donate {
     flex-wrap: nowrap;
     gap: calc(9 * var(--px));
-    margin-top: calc(22 * var(--px));
-    padding: 0;
+    margin-top: 0;
+    padding: 22px 0;
     background: none;
   }
   .donate__btn { width: calc(31 * var(--px)); padding: 0; }
