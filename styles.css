@@ -1710,6 +1710,9 @@ body.is-modal-open { overflow: hidden; }
   line-height: 1;
   color: #8a8a8a;
   border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 .modal__close:hover { color: var(--red); background: #f6f0f0; }
 
@@ -1848,8 +1851,11 @@ body.is-modal-open { overflow: hidden; }
 /* ---------- Share-карточка ---------- */
 .modal__dialog--share { width: min(100%, 480px); }
 
-/* Заголовок «Ваша карточка» — на одном уровне с крестиком */
-.modal__dialog--share { padding-top: 8px; }
+/* Заголовок «Ваша карточка» — на одном уровне с крестиком.
+   Крестик: absolute, top 8px, высота 44px → центр на 30px от края диалога.
+   Диалогу убираем верхний паддинг, а .modal__scroll даёт свои 8px —
+   заголовок с min-height 44px и flex-центровкой попадает ровно в тот же центр. */
+.modal__dialog--share { padding-top: 0; }
 .modal__dialog--share .modal__title {
   display: flex;
   align-items: center;
