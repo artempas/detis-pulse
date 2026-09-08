@@ -74,9 +74,12 @@
     return Array.prototype.slice.call((root || document).querySelectorAll(sel));
   }
 
-  function scrollToEl(el) {
+  function scrollToEl(el, instant) {
     if (!el) return;
-    el.scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'start' });
+    el.scrollIntoView({
+      behavior: (instant || reduceMotion) ? 'auto' : 'smooth',
+      block: 'start'
+    });
   }
 
   /* ------------------------------------------------------------------ */
@@ -843,7 +846,11 @@
 
     var personal = $('#personal-card');
     unlock(personal);
-    scrollToEl(personal);
+
+    /* Мгновенный скролл: поп-ап тут же ставит body в overflow:hidden и
+       плавный скролл не успел бы доехать. Позиция сохраняется под поп-апом,
+       поэтому после его закрытия пользователь оказывается на карточке. */
+    scrollToEl(personal, true);
 
     /* Пауза живого счётчика на время анимации подсчёта, иначе таймер
        #result-number перебивал бы count-up персонального числа. */
@@ -1273,6 +1280,7 @@
     M.setFailCallback(function () {
       payError('Платёж не прошёл. Попробуйте ещё раз или выберите другой способ оплаты.');
     });
+    M.setCloseCallback(()=>{})
   }
 
   /* Публичный API для платежного модуля */

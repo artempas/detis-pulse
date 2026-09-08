@@ -1464,18 +1464,24 @@ button {
     line-height: 1.125;
   }
 
-  /* ---------- Девочка + факт ---------- */
+  /* ---------- Факт про детское сердце ---------- */
+  /* В мобильном макете девочки нет — текст лежит поверх розового сердца */
   .fact {
-    gap: calc(46 * var(--px));
+    gap: calc(24 * var(--px));
     margin-top: calc(47 * var(--px));
-    text-align: left;
+    text-align: center;
   }
-  .fact__pic {
-    align-self: start;
-    width: calc(247 * var(--px));
-    margin-left: calc(27 * var(--px));
+  .fact__pic { display: none; }
+  .fact__text {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: calc(224 * var(--px));
+    padding: calc(36 * var(--px)) calc(12 * var(--px));
+    line-height: 1.2;
+    text-align: center;
+    background: url(assets/fact-heart.png) center / contain no-repeat;
   }
-  .fact__text { line-height: 1.2; }
 
   /* ---------- Результат ---------- */
 
