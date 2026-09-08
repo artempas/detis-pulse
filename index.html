@@ -1145,31 +1145,33 @@
         >
           &times;
         </button>
-        <p class="modal__title" id="share-modal-title">Ваша карточка</p>
-        <div class="share-preview">
-          <img
-            id="share-image"
-            alt="Персональная карточка с количеством ударов вашего сердца"
-          />
+        <div class="modal__scroll">
+          <p class="modal__title" id="share-modal-title">Ваша карточка</p>
+          <div class="share-preview">
+            <img
+              id="share-image"
+              alt="Персональная карточка с количеством ударов вашего сердца"
+            />
+          </div>
+          <p class="share-text" id="share-text"></p>
+          <div class="share-actions">
+            <button class="btn" type="button" id="share-native" hidden>
+              Поделиться
+            </button>
+            <a class="btn btn--ghost" id="share-download" download="pulsuy.png"
+              >Скачать картинку</a
+            >
+            <button class="btn btn--ghost" type="button" id="share-copy">
+              Скопировать текст
+            </button>
+          </div>
+          <p
+            class="share-status"
+            id="share-status"
+            role="status"
+            aria-live="polite"
+          ></p>
         </div>
-        <p class="share-text" id="share-text"></p>
-        <div class="share-actions">
-          <button class="btn" type="button" id="share-native" hidden>
-            Поделиться
-          </button>
-          <a class="btn btn--ghost" id="share-download" download="pulsuy.png"
-            >Скачать картинку</a
-          >
-          <button class="btn btn--ghost" type="button" id="share-copy">
-            Скопировать текст
-          </button>
-        </div>
-        <p
-          class="share-status"
-          id="share-status"
-          role="status"
-          aria-live="polite"
-        ></p>
       </div>
     </div>
 

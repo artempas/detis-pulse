@@ -1858,26 +1858,37 @@ body.is-modal-open { overflow: hidden; }
   padding-inline: 48px;
 }
 
-/* Аккуратный скролл внутри поп-апа «Поделиться».
-   scrollbar-width НЕ задаём: в Chromium он отключает кастомизацию
-   через ::-webkit-scrollbar. Для Firefox стили ниже, в @supports. */
-.modal__dialog--share::-webkit-scrollbar {
+/* Прокрутка вынесена во внутренний контейнер, чтобы скруглённые углы
+   попап-окна оставались нетронутыми (иначе в Firefox полоса прокрутки
+   «съедает» угол). */
+.modal__dialog--share {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.modal__scroll {
+  overflow-y: auto;
+  min-height: 0;
+  overscroll-behavior: contain;
+  padding: 8px;
+}
+.modal__scroll::-webkit-scrollbar {
   width: 8px;
 }
-.modal__dialog--share::-webkit-scrollbar-track {
+.modal__scroll::-webkit-scrollbar-track {
   margin: 20px 0;
   background: transparent;
 }
-.modal__dialog--share::-webkit-scrollbar-thumb {
+.modal__scroll::-webkit-scrollbar-thumb {
   background: rgba(191, 44, 35, .55);
   border-radius: 999px;
 }
-.modal__dialog--share::-webkit-scrollbar-thumb:hover {
+.modal__scroll::-webkit-scrollbar-thumb:hover {
   background: var(--red);
 }
 /* Firefox (не Chromium: там scrollbar-width отключает ::-webkit-scrollbar) */
 @supports (-moz-orient: inline) {
-  .modal__dialog--share {
+  .modal__scroll {
     scrollbar-width: thin;
     scrollbar-color: rgba(191, 44, 35, .55) transparent;
   }
